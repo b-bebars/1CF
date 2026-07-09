@@ -1,0 +1,91 @@
+@charset "UTF-8";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 340 40% 99%;
+    --foreground: 280 20% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 280 20% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 280 20% 12%;
+    --primary: 328 80% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 275 60% 92%;
+    --secondary-foreground: 275 50% 30%;
+    --muted: 320 25% 96%;
+    --muted-foreground: 280 10% 45%;
+    --accent: 280 70% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 320 20% 90%;
+    --input: 320 20% 90%;
+    --ring: 328 80% 58%;
+    --radius: 1rem;
+    --chart-1: 328 80% 58%;
+    --chart-2: 280 70% 60%;
+    --chart-3: 340 90% 70%;
+    --chart-4: 260 60% 65%;
+    --chart-5: 300 65% 60%;
+  }
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    background: radial-gradient(1200px 700px at 10% -10%, #fce7f3 0%, transparent 60%),
+                radial-gradient(1000px 600px at 100% 10%, #f3e8ff 0%, transparent 55%),
+                #fdfaff;
+    color: hsl(var(--foreground));
+    -webkit-font-smoothing: antialiased;
+  }
+  .font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; letter-spacing: -0.02em; }
+}
+
+.rose-gradient-text {
+  background: linear-gradient(90deg, #db2777 0%, #a855f7 60%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-glow {
+  box-shadow: 0 10px 40px -12px rgba(219, 39, 119, 0.18), 0 4px 16px -4px rgba(168, 85, 247, 0.10);
+}
+
+.rose-shadow {
+  filter: drop-shadow(0 4px 12px rgba(219, 39, 119, 0.35));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(3deg); }
+}
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes bloom {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.animate-bloom { animation: bloom 0.7s ease-out forwards; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #f9a8d4, #c4b5fd); border-radius: 10px; }
