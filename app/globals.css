@@ -7,85 +7,89 @@
 
 @layer base {
   :root {
-    --background: 340 40% 99%;
-    --foreground: 280 20% 12%;
+    --background: 270 40% 99%;
+    --foreground: 270 40% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 280 20% 12%;
+    --card-foreground: 270 40% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 280 20% 12%;
-    --primary: 328 80% 58%;
+    --popover-foreground: 270 40% 12%;
+    --primary: 265 65% 40%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 275 60% 92%;
-    --secondary-foreground: 275 50% 30%;
-    --muted: 320 25% 96%;
-    --muted-foreground: 280 10% 45%;
-    --accent: 280 70% 60%;
+    --secondary: 270 40% 96%;
+    --secondary-foreground: 265 65% 30%;
+    --muted: 270 20% 96%;
+    --muted-foreground: 265 15% 45%;
+    --accent: 210 90% 55%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 320 20% 90%;
-    --input: 320 20% 90%;
-    --ring: 328 80% 58%;
+    --border: 270 30% 92%;
+    --input: 270 30% 92%;
+    --ring: 265 65% 40%;
     --radius: 1rem;
-    --chart-1: 328 80% 58%;
-    --chart-2: 280 70% 60%;
-    --chart-3: 340 90% 70%;
-    --chart-4: 260 60% 65%;
-    --chart-5: 300 65% 60%;
+    --chart-1: 265 65% 45%;
+    --chart-2: 210 90% 55%;
+    --chart-3: 280 60% 55%;
+    --chart-4: 220 80% 65%;
+    --chart-5: 260 45% 55%;
+
+    /* Brand */
+    --brand-purple: 265 65% 40%;
+    --brand-purple-dark: 270 70% 25%;
+    --brand-blue: 210 90% 55%;
+    --brand-blue-light: 205 90% 70%;
+    --brand-yellow: 45 95% 55%;
   }
 }
 
 @layer base {
   body {
     font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-    background: radial-gradient(1200px 700px at 10% -10%, #fce7f3 0%, transparent 60%),
-                radial-gradient(1000px 600px at 100% 10%, #f3e8ff 0%, transparent 55%),
-                #fdfaff;
+    background:
+      radial-gradient(1100px 700px at -5% -10%, #ede9fe 0%, transparent 55%),
+      radial-gradient(900px 600px at 105% 5%, #e0e7ff 0%, transparent 55%),
+      #fbfaff;
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
   }
   .font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; letter-spacing: -0.02em; }
 }
 
-.rose-gradient-text {
-  background: linear-gradient(90deg, #db2777 0%, #a855f7 60%, #7c3aed 100%);
+.brand-gradient {
+  background: linear-gradient(135deg, #6b21a8 0%, #7c3aed 45%, #3b82f6 100%);
+}
+.brand-gradient-text {
+  background: linear-gradient(135deg, #4c1d95 0%, #6b21a8 55%, #2563eb 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-
-.card-glow {
-  box-shadow: 0 10px 40px -12px rgba(219, 39, 119, 0.18), 0 4px 16px -4px rgba(168, 85, 247, 0.10);
+.brand-shadow {
+  box-shadow: 0 20px 50px -18px rgba(107, 33, 168, 0.35), 0 4px 16px -4px rgba(59, 130, 246, 0.15);
 }
-
-.rose-shadow {
-  filter: drop-shadow(0 4px 12px rgba(219, 39, 119, 0.35));
+.card-elevated {
+  box-shadow: 0 8px 30px -14px rgba(107, 33, 168, 0.18), 0 2px 8px -2px rgba(59, 130, 246, 0.08);
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(3deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
 }
-.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-float { animation: float 5s ease-in-out infinite; }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
-.shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
+.animate-spin-slow { animation: spin-slow 30s linear infinite; }
 
 @keyframes bloom {
   0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-  60% { transform: scale(1.2) rotate(10deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  60% { transform: scale(1.15) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
 }
-.animate-bloom { animation: bloom 0.7s ease-out forwards; }
+.animate-bloom { animation: bloom 0.6s cubic-bezier(.22,1,.36,1) forwards; }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #f9a8d4, #c4b5fd); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c4b5fd, #93c5fd); border-radius: 10px; }
