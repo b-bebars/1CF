@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createClient } from '@/lib/supabase/browser'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -521,29 +522,58 @@ function AnnouncementsAdmin({ items, onAdd, onDelete }) {
 
 // ============= ONBOARDING =============
 function Onboarding({ open, onClose, onDone }) {
+  const [mode, setMode] = useState('signin')
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState('')
   const [name, setName] = useState(''); const [avatar, setAvatar] = useState('🌹'); const [loading, setLoading] = useState(false)
+  const sb = createClient()
+  const google = async () => {
+    setLoading(true)
+    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth/callback?next=/` } })
+  }
   const submit = async () => {
-    if (!name.trim()) return toast.error('Please enter your name')
+    if (!email.trim() || !password) return toast.error('Enter email and password')
     setLoading(true)
     try {
-      const doc = await api('participants', { method: 'POST', body: JSON.stringify({ name: name.trim(), avatar }) })
-      localStorage.setItem('roseup_user', JSON.stringify(doc))
-      toast.success(`Welcome, ${doc.name}!`, { description: 'Your Rose Path awaits 🌹' }); onDone(doc)
-    } catch { toast.error('Something went wrong') } finally { setLoading(false) }
+      if (mode === 'signup') {
+        const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name || email.split('@')[0], avatar } } })
+        if (error) throw error
+        if (!data.session) { toast.success('Check your email to confirm, then log in'); onClose?.(); return }
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password })
+        if (error) throw error
+      }
+      // ensure participant row
+      await api('participants', { method: 'POST', body: JSON.stringify({ name: name || email.split('@')[0], avatar }) }).catch(()=>{})
+      const meRes = await api('me')
+      if (meRes.participant) { toast.success(`Welcome, ${meRes.participant.name}!`); onDone(meRes.participant) }
+    } catch (e) { toast.error(e.message || 'Auth failed') } finally { setLoading(false) }
   }
   return (<Dialog open={open} onOpenChange={(v)=>!v&&onClose?.()}>
     <DialogContent className="sm:max-w-md rounded-3xl">
       <DialogHeader><div className="mx-auto mb-1"><BrandMark size={56}/></div>
       <DialogTitle className="text-center font-display text-2xl text-brand-purple-dark">Join RoseUp Quest 2026</DialogTitle>
-      <DialogDescription className="text-center">Every step gives hope. Let's start your journey.</DialogDescription></DialogHeader>
+      <DialogDescription className="text-center">Every step gives hope.</DialogDescription></DialogHeader>
       <div className="space-y-3">
-        <div><label className="text-sm font-semibold mb-2 block">Your name</label><Input placeholder="e.g. Bebars Albasaleh" value={name} onChange={(e)=>setName(e.target.value)} className="rounded-xl border-purple-200"/></div>
-        <div><label className="text-sm font-semibold mb-2 block">Pick your avatar</label>
-        <div className="grid grid-cols-5 gap-2">{AVATARS.map((a,i)=>(<button key={i} type="button" onClick={()=>setAvatar(a)}
-          className={`text-2xl h-11 rounded-xl border-2 ${avatar===a?'border-brand-purple bg-purple-50 scale-105':'border-transparent bg-muted hover:bg-purple-50'}`}>{a}</button>))}</div></div>
+        <Button onClick={google} disabled={loading} variant="outline" className="w-full h-11 rounded-xl border-purple-200 justify-center gap-2">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C33.9 6.1 29.2 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.4 18.9 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C33.9 6.1 29.2 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.8-2 13.3-5.2l-6.1-5.2c-2 1.4-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.2-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.2 5.6l6.1 5.2C40.7 35.6 44 30.3 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+          Continue with Google
+        </Button>
+        <div className="text-center text-xs text-muted-foreground">or with email</div>
+        <Input placeholder="Email" type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="rounded-xl border-purple-200"/>
+        <Input placeholder="Password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} className="rounded-xl border-purple-200"/>
+        {mode==='signup' && <>
+          <Input placeholder="Display name" value={name} onChange={(e)=>setName(e.target.value)} className="rounded-xl border-purple-200"/>
+          <div className="grid grid-cols-5 gap-2">{AVATARS.map((a,i)=>(<button key={i} type="button" onClick={()=>setAvatar(a)}
+            className={`text-2xl h-11 rounded-xl border-2 ${avatar===a?'border-brand-purple bg-purple-50':'border-transparent bg-muted hover:bg-purple-50'}`}>{a}</button>))}</div>
+        </>}
       </div>
-      <DialogFooter><Button onClick={submit} disabled={loading} className="w-full brand-gradient text-white rounded-xl h-11 font-semibold">
-        {loading?<Loader2 className="h-4 w-4 animate-spin"/>:<>Start the Quest <ChevronRight className="ml-1 h-4 w-4"/></>}</Button></DialogFooter>
+      <DialogFooter className="flex-col gap-2">
+        <Button onClick={submit} disabled={loading} className="w-full brand-gradient text-white rounded-xl h-11 font-semibold">
+          {loading?<Loader2 className="h-4 w-4 animate-spin"/>:(mode==='signup'?'Create account':'Log in')}</Button>
+        <button type="button" onClick={()=>setMode(mode==='signup'?'signin':'signup')} className="text-xs text-brand-purple hover:underline">
+          {mode==='signup'?'Already have an account? Log in':'New here? Create account'}
+        </button>
+      </DialogFooter>
     </DialogContent></Dialog>)
 }
 
@@ -580,10 +610,12 @@ function App() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin')==='1') setIsAdmin(true)
-    const raw = localStorage.getItem('roseup_user')
-    if (raw) { try { setMe(JSON.parse(raw)) } catch {} }
+    const sb = createClient()
+    api('me').then(d=>{ if(d?.participant) setMe(d.participant) })
+    const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) api('me').then(d=>{ if(d?.participant) setMe(d.participant) }); else setMe(null) })
     api('stats').then(setStats)
     api('announcements').then(d=>setAnnouncements(d.announcements||[]))
+    return () => sub?.subscription?.unsubscribe?.()
   }, [])
 
   useEffect(() => {
@@ -600,7 +632,7 @@ function App() {
 
   const refetchMe = async () => { if(me?.id){const d=await api(`participants/${me.id}`); if(d?.id){setMe(d);localStorage.setItem('roseup_user',JSON.stringify(d))}} api('stats').then(setStats) }
 
-  const signOut = () => { localStorage.removeItem('roseup_user'); setMe(null); setTab('dashboard'); toast('Signed out') }
+  const signOut = async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.removeItem('roseup_user'); setMe(null); setTab('dashboard'); toast('Signed out') }
   const completeDaily = async (c) => {
     if (!me?.id) { setOnboard(true); return }
     setBusy(true)
