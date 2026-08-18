@@ -539,7 +539,7 @@ function Onboarding({ open, onClose, onDone }) {
     await sb.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${site}/auth/callback?next=/`,
+        redirectTo: `${site}/auth/callback`,
         queryParams: { prompt: 'select_account', access_type: 'offline' },
       },
     })
