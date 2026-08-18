@@ -697,8 +697,14 @@ function App() {
               <Button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/?admin=1')}} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>}
             <Button variant="ghost" onClick={()=>window.location.href='/'} className="rounded-xl h-11">Back to app</Button>
           </div>
+          {me && role !== 'admin' && (
+            <div className="mt-4 text-xs text-muted-foreground">
+              Signed in as <b>{me.name}</b> but not an admin.
+            </div>
+          )}
         </CardContent>
       </Card>
+      <Onboarding open={onboard} onClose={()=>setOnboard(false)} onDone={(u)=>{setMe(u);setOnboard(false);setTimeout(()=>window.location.reload(),300)}}/>
     </div>)
   }
 
