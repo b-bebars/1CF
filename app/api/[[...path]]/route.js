@@ -305,3 +305,8 @@ export const POST = handler
 export const PUT = handler
 export const DELETE = handler
 export const PATCH = handler
+
+// Allow large proof video uploads (~20MB base64 for 15MB video)
+export const maxDuration = 60
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'

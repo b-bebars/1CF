@@ -112,7 +112,11 @@ function ProofDialog({ open, onClose, challenge, me, onSubmitted }) {
   const fileRef = useRef(null)
   const pickFile = async (e) => {
     const f = e.target.files?.[0]; if (!f) return
-    if (f.size > 800000) { toast.error('Please pick an image under 800KB'); return }
+    const isVideo = f.type.startsWith('video/')
+    const isImage = f.type.startsWith('image/')
+    if (!isVideo && !isImage) { toast.error('Please pick an image or video'); return }
+    const limit = isVideo ? 15 * 1024 * 1024 : 3 * 1024 * 1024
+    if (f.size > limit) { toast.error(`${isVideo?'Video':'Image'} exceeds ${isVideo?'15 MB':'3 MB'} limit`); return }
     const reader = new FileReader()
     reader.onload = () => setDataUrl(reader.result)
     reader.readAsDataURL(f)
@@ -141,13 +145,16 @@ function ProofDialog({ open, onClose, challenge, me, onSubmitted }) {
       </DialogHeader>
       <div className="space-y-3">
         <div>
-          <input type="file" accept="image/*" ref={fileRef} onChange={pickFile} className="hidden"/>
+          <input type="file" accept="image/*,video/*" ref={fileRef} onChange={pickFile} className="hidden"/>
           {dataUrl ? (
-            <div className="relative rounded-2xl overflow-hidden border border-purple-200"><img src={dataUrl} alt="proof" className="w-full max-h-64 object-cover"/>
+            <div className="relative rounded-2xl overflow-hidden border border-purple-200">
+              {dataUrl.startsWith('data:video')
+                ? <video src={dataUrl} controls className="w-full max-h-64"/>
+                : <img src={dataUrl} alt="proof" className="w-full max-h-64 object-cover"/>}
             <button onClick={()=>setDataUrl(null)} className="absolute top-2 right-2 h-8 w-8 bg-black/60 text-white rounded-full flex items-center justify-center"><X className="h-4 w-4"/></button></div>
           ) : (
             <button onClick={()=>fileRef.current?.click()} className="w-full rounded-2xl border-2 border-dashed border-purple-200 py-10 hover:bg-purple-50 flex flex-col items-center gap-2 text-brand-purple">
-              <Upload className="h-6 w-6"/><div className="font-semibold">Upload a photo</div><div className="text-xs text-muted-foreground">Image, up to 800KB</div>
+              <Upload className="h-6 w-6"/><div className="font-semibold">Upload photo or video</div><div className="text-xs text-muted-foreground">Image up to 3 MB · Video up to 15 MB</div>
             </button>
           )}
         </div>
@@ -528,7 +535,14 @@ function Onboarding({ open, onClose, onDone }) {
   const sb = createClient()
   const google = async () => {
     setLoading(true)
-    await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/auth/callback?next=/` } })
+    const site = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+    await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${site}/auth/callback?next=/`,
+        queryParams: { prompt: 'select_account', access_type: 'offline' },
+      },
+    })
   }
   const submit = async () => {
     if (!email.trim() || !password) return toast.error('Enter email and password')
