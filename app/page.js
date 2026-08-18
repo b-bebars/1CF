@@ -549,18 +549,25 @@ function Onboarding({ open, onClose, onDone }) {
     if (!email.trim() || !password) return toast.error('Enter email and password')
     setLoading(true)
     try {
+      let session
       if (mode === 'signup') {
         const { data, error } = await sb.auth.signUp({ email, password, options: { data: { full_name: name || email.split('@')[0], avatar } } })
         if (error) throw error
-        if (!data.session) { toast.success('Check your email to confirm, then log in'); onClose?.(); return }
+        session = data.session
+        if (!session) { toast.success('Check your email to confirm, then log in'); onClose?.(); return }
       } else {
-        const { error } = await sb.auth.signInWithPassword({ email, password })
+        const { data, error } = await sb.auth.signInWithPassword({ email, password })
         if (error) throw error
+        session = data.session
       }
-      // ensure participant row
+      // Give @supabase/ssr a tick to write the session cookie, then upsert participant + hydrate
+      await new Promise(r => setTimeout(r, 200))
       await api('participants', { method: 'POST', body: JSON.stringify({ name: name || email.split('@')[0], avatar }) }).catch(()=>{})
       const meRes = await api('me')
-      if (meRes.participant) { toast.success(`Welcome, ${meRes.participant.name}!`); onDone(meRes.participant) }
+      toast.success(`Welcome, ${meRes?.participant?.name || email}!`)
+      onDone(meRes?.participant || { id: session?.user?.id, name: email.split('@')[0], avatar, points: 0, km: 0, streak: 1, completed: 0, completedChallengeIds: [] })
+      // Hard reload as a safety net so cookies are definitely in sync everywhere
+      setTimeout(() => window.location.reload(), 400)
     } catch (e) { toast.error(e.message || 'Auth failed') } finally { setLoading(false) }
   }
   return (<Dialog open={open} onOpenChange={(v)=>!v&&onClose?.()}>
