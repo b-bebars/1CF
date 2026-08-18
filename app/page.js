@@ -623,7 +623,16 @@ function App() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('admin')==='1') setIsAdmin(true)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('admin')==='1') setIsAdmin(true)
+      // Emergency force-signout via ?signout=1
+      if (params.get('signout')==='1') {
+        const sb = createClient()
+        sb.auth.signOut().finally(()=>{ localStorage.clear(); window.location.replace('/') })
+        return
+      }
+    }
     const sb = createClient()
     api('me').then(d=>{ if(d?.participant) setMe(d.participant) })
     const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) api('me').then(d=>{ if(d?.participant) setMe(d.participant) }); else setMe(null) })
@@ -679,6 +688,7 @@ function App() {
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={()=>setOnboard(true)} className="rounded-full border-purple-200 text-brand-purple-dark hover:bg-purple-50">Log In</Button>
             <Button onClick={()=>setOnboard(true)} className="rounded-full brand-gradient text-white">Sign Up</Button>
+            <Button variant="ghost" onClick={signOut} title="Sign out of any existing session" className="rounded-full text-xs text-muted-foreground hover:text-brand-purple"><LogOut className="h-3.5 w-3.5 mr-1"/>Sign out</Button>
           </div>
         </div>
       </header>
