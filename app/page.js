@@ -237,7 +237,7 @@ function Certificate({ me }) {
 }
 
 // ============= ADMIN =============
-function AdminDashboard({ onExit }) {
+function AdminDashboard({ onExit, currentUser }) {
   const [tab, setTab] = useState('overview')
   const [analytics, setAnalytics] = useState(null)
   const [participants, setParticipants] = useState([])
@@ -306,9 +306,10 @@ function AdminDashboard({ onExit }) {
           <Icon className="h-4 w-4"/>{label}
         </button>)})}
       </nav>
-      <div className="p-3 border-t border-white/10">
-        <button onClick={onExit} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><LogOut className="h-4 w-4"/>Exit Admin</button>
-      </div>
+        <div className="p-3 border-t border-white/10 space-y-1">
+          <button onClick={onExit} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><X className="h-4 w-4"/>Exit Admin</button>
+          <button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/')}} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><LogOut className="h-4 w-4"/>Log Out</button>
+        </div>
     </aside>
     <main className="flex-1 min-w-0 p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -621,12 +622,13 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [proofChallenge, setProofChallenge] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [adminRequested, setAdminRequested] = useState(false)
+  const [role, setRole] = useState('user')
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      if (params.get('admin')==='1') setIsAdmin(true)
-      // Emergency force-signout via ?signout=1
+      if (params.get('admin')==='1') setAdminRequested(true)
       if (params.get('signout')==='1') {
         const sb = createClient()
         sb.auth.signOut().finally(()=>{ localStorage.clear(); window.location.replace('/') })
@@ -634,8 +636,12 @@ function App() {
       }
     }
     const sb = createClient()
-    api('me').then(d=>{ if(d?.participant) setMe(d.participant) })
-    const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) api('me').then(d=>{ if(d?.participant) setMe(d.participant) }); else setMe(null) })
+    const hydrate = () => api('me').then(d=>{
+      if(d?.participant) setMe(d.participant); else setMe(null)
+      setRole(d?.user?.role || 'user')
+    })
+    hydrate()
+    const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) hydrate(); else { setMe(null); setRole('user') } })
     api('stats').then(setStats)
     api('announcements').then(d=>setAnnouncements(d.announcements||[]))
     return () => sub?.subscription?.unsubscribe?.()
@@ -670,8 +676,24 @@ function App() {
   const startProof = (c) => { if (!me?.id) { setOnboard(true); return } setProofChallenge(c) }
   const myRank = useMemo(()=>{if(!me)return null;const idx=(stats.topParticipants||[]).findIndex(p=>p.id===me.id);return idx>=0?idx+1:null},[stats,me])
 
-  // ADMIN VIEW
-  if (isAdmin) return <AdminDashboard onExit={()=>{window.location.search=''}}/>
+  // ADMIN VIEW — requires real Supabase admin role
+  if (adminRequested) {
+    if (role === 'admin') return <AdminDashboard onExit={()=>{window.location.href='/'}} currentUser={me}/>
+    return (<div className="min-h-screen flex items-center justify-center p-6">
+      <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
+        <CardContent className="p-8 text-center">
+          <div className="mx-auto mb-3"><BrandMark size={56}/></div>
+          <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Admin access required</h2>
+          <p className="text-sm text-muted-foreground mt-2">Only users with the admin role can view this page. Sign in with an admin account to continue.</p>
+          <div className="mt-5 flex flex-col gap-2">
+            {!me ? <Button onClick={()=>setOnboard(true)} className="brand-gradient text-white rounded-xl h-11">Sign in</Button> :
+              <Button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/?admin=1')}} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>}
+            <Button variant="ghost" onClick={()=>window.location.href='/'} className="rounded-xl h-11">Back to app</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>)
+  }
 
   // LANDING
   if (!me) {
