@@ -35,8 +35,21 @@ async function handler(request, ctx) {
       const server = await createSupabaseServer()
       const { data: { user } } = await server.auth.getUser()
       if (!user) return NextResponse.json({ user: null })
+      // Fetch fresh app_metadata via admin API so freshly-promoted role reflects immediately
+      let role = user.app_metadata?.role || 'user'
+      try {
+        const { data: fresh } = await sb.auth.admin.getUserById(user.id)
+        role = fresh?.user?.app_metadata?.role || role
+      } catch {}
+      // Also auto-promote configured admin email if not yet promoted
+      if (role !== 'admin' && user.email?.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase()) {
+        try {
+          await sb.auth.admin.updateUserById(user.id, { app_metadata: { ...(user.app_metadata||{}), role: 'admin' } })
+          role = 'admin'
+        } catch {}
+      }
       const { data: prof } = await sb.from('participants').select('*').eq('id', user.id).maybeSingle()
-      return NextResponse.json({ user: { id: user.id, email: user.email, role: user.app_metadata?.role || 'user' }, participant: toParticipant(prof) })
+      return NextResponse.json({ user: { id: user.id, email: user.email, role }, participant: toParticipant(prof) })
     }
 
     // ---------- Participants ----------

@@ -810,6 +810,7 @@ function App() {
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center text-lg">{me.avatar}</div>
             <div className="leading-tight"><div className="text-sm font-semibold text-brand-purple-dark">{me.name.split(' ')[0]}</div><div className="text-[10px] text-muted-foreground">{me.points||0} pts</div></div>
           </div>
+          <Button onClick={signOut} variant="outline" size="sm" className="rounded-full border-purple-200 h-9 gap-1.5"><LogOut className="h-3.5 w-3.5"/><span className="hidden sm:inline">Log Out</span></Button>
         </div>
       </header>
       <div className="p-4 md:p-8 space-y-6">
