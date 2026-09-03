@@ -796,7 +796,7 @@ function App() {
   const startProof = (c) => { if (!me?.id) { setOnboard(true); return } setProofChallenge(c) }
   const myRank = useMemo(()=>{if(!me)return null;const idx=(stats.topParticipants||[]).findIndex(p=>p.id===me.id);return idx>=0?idx+1:null},[stats,me])
 
-  // ADMIN VIEW — دخول دائم وتجاوز الفحص الداخلي لـ AdminDashboard
+  // ADMIN VIEW — دخول ثابت ووصول دائم لـ bebars و nelshaar و admin
   const userEmail = (me?.email || me?.user?.email || '').toLowerCase();
   const userName = (me?.name || me?.participant?.name || me?.display_name || '').toLowerCase();
 
@@ -806,19 +806,20 @@ function App() {
     userName.includes('bebars')  || userName.includes('nelshaar');
 
   if (adminRequested || tab === 'admin') {
-    // تجهيز كائن مستخدم يحمل صلاحية admin دائماً لتمريره للوحة التحكم
     const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
 
-    return (
-      <AdminDashboard 
-        onExit={() => { 
-          setAdminRequested(false); 
-          setTab('challenges'); 
-        }} 
-        currentUser={safeAdminUser}
-      />
-    );
-  }
+    if (isUserAdmin) {
+      return (
+        <AdminDashboard 
+          onExit={() => { 
+            if (typeof setAdminRequested === 'function') setAdminRequested(false);
+            setTab('challenges'); 
+          }} 
+          currentUser={safeAdminUser}
+        />
+      );
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
@@ -827,9 +828,12 @@ function App() {
             <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Admin access required</h2>
             <p className="text-sm text-muted-foreground mt-2">Only users with the admin role can view this page. Sign in with an admin account to continue.</p>
             <div className="mt-5 flex flex-col gap-2">
-              {!me ? <Button onClick={()=>setOnboard(true)} className="brand-gradient text-white rounded-xl h-11">Sign in</Button> :
-                <Button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/?admin=1')}} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>}
-              <Button variant="ghost" onClick={()=>{ setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
+              {!me ? (
+                <Button onClick={() => setOnboard(true)} className="brand-gradient text-white rounded-xl h-11">Sign in</Button>
+              ) : (
+                <Button onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.clear(); window.location.replace('/?admin=1') }} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>
+              )}
+              <Button variant="ghost" onClick={() => { if (typeof setAdminRequested === 'function') setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
             </div>
             {me && !isUserAdmin && (
               <div className="mt-4 text-xs text-muted-foreground">
@@ -838,11 +842,10 @@ function App() {
             )}
           </CardContent>
         </Card>
-        <Onboarding open={onboard} onClose={()=>setOnboard(false)} onDone={(u)=>{setMe(u);setOnboard(false);setTimeout(()=>window.location.reload(),300)}}/>
+        <Onboarding open={onboard} onClose={() => setOnboard(false)} onDone={(u) => { setMe(u); setOnboard(false); setTimeout(() => window.location.reload(), 300) }} />
       </div>
     );
   }
-
   // LANDING
   if (!me) {
     return (<div className="min-h-screen">
