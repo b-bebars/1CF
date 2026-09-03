@@ -835,12 +835,34 @@ function App() {
     if (!me?.id) { setOnboard(true); return }
     setBusy(true)
     try {
-      const km = c.category==='move' && /walk/i.test(c.title) ? 3 : (c.category==='move' ? 0.5 : 0)
-      const data = await api('challenges/complete', { method: 'POST', body: JSON.stringify({ userId: me.id, challengeId: c.id, points: c.points, km }) })
-      if (data.participant) { setMe(data.participant); localStorage.setItem('roseup_user', JSON.stringify(data.participant)) }
+      const sb = createClient();
+      const km = c.category === 'move' && /walk/i.test(c.title) ? 3 : (c.category === 'move' ? 0.5 : 0)
+
+      // 1. تسجيل الإكمال في جدول challenge_completions
+      await sb.from('challenge_completions').insert({
+        user_id: me.id,
+        challenge_id: c.id
+      });
+
+      // 2. إرسال الطلب لـ API لتحديث نقاط المستخدم
+      const data = await api('challenges/complete', { 
+        method: 'POST', 
+        body: JSON.stringify({ userId: me.id, challengeId: c.id, points: c.points, km }) 
+      })
+
+      if (data.participant) { 
+        setMe(data.participant); 
+        localStorage.setItem('roseup_user', JSON.stringify(data.participant)) 
+      }
+
       setDaily(prev => prev.map(x => x.id === c.id ? { ...x, completed: true } : x))
-      toast.success(`+${c.points} points! 🌹`, { description: c.title }); api('stats').then(setStats)
-    } catch { toast.error('Failed') } finally { setBusy(false) }
+      toast.success(`+${c.points} points! 🌹`, { description: c.title }); 
+      api('stats').then(setStats)
+    } catch { 
+      toast.error('Failed') 
+    } finally { 
+      setBusy(false) 
+    }
   }
 
   const startProof = (c) => { if (!me?.id) { setOnboard(true); return } setProofChallenge(c) }
