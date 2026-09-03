@@ -728,26 +728,25 @@ function App() {
       }
     }
     const sb = createClient()
-   const hydrate = async () => {
-    try {
-      const d = await api('me');
-      
-      if (d?.user || d?.participant) {
-        if (d.participant) setMe(d.participant);
-        
-        // فحص البريد الإلكتروني ومنح صلاحية الأدمن لـ bebars و nelshaar
-        const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
-        const isAdmin = email.includes('bebars') || email.includes('nelshaar');
-        
-        setRole(isAdmin ? 'admin' : 'user');
-        if (isAdmin) setTab('admin');
-      }
-    } catch (err) {
-      console.error("Hydrate error:", err);
-    }
-  };
-
   useEffect(() => {
+    const hydrate = async () => {
+      try {
+        const d = await api('me');
+        if (d?.user || d?.participant) {
+          if (d.participant) setMe(d.participant);
+          
+          // التحقق من البريد الإلكتروني لمنح صلاحية الأدمن لـ bebars و nelshaar
+          const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
+          const isAdmin = email.includes('bebars') || email.includes('nelshaar');
+          
+          setRole(isAdmin ? 'admin' : 'user');
+          if (isAdmin) setTab('admin');
+        }
+      } catch (err) {
+        console.error("Hydrate error:", err);
+      }
+    };
+
     hydrate();
   }, []);
     const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) hydrate(); else { setMe(null); setRole('user') } })
