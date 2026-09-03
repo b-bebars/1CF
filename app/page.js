@@ -811,9 +811,26 @@ function App() {
     api('challenges?type=special').then(d=>setSpecial(d.challenges||[]))
   }, [me?.id])
 
-  const refetchMe = async () => { if(me?.id){const d=await api(`participants/${me.id}`); if(d?.id){setMe(d);localStorage.setItem('roseup_user',JSON.stringify(d))}} api('stats').then(setStats) }
+  const refetchMe = async () => { 
+    if(me?.id){
+      const d = await api(`participants/${me.id}`); 
+      if(d?.id){
+        setMe(d);
+        localStorage.setItem('roseup_user', JSON.stringify(d));
+      }
+    } 
+    api('stats').then(setStats);
+  }
 
-  const signOut = async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.removeItem('roseup_user'); setMe(null); setTab('dashboard'); toast('Signed out') }
+  const signOut = async () => { 
+    const sb = createClient(); 
+    await sb.auth.signOut(); 
+    localStorage.removeItem('roseup_user'); 
+    setMe(null); 
+    setTab('dashboard'); 
+    toast('Signed out');
+  }
+
   const completeDaily = async (c) => {
     if (!me?.id) { setOnboard(true); return }
     setBusy(true)
@@ -825,8 +842,14 @@ function App() {
       toast.success(`+${c.points} points! 🌹`, { description: c.title }); api('stats').then(setStats)
     } catch { toast.error('Failed') } finally { setBusy(false) }
   }
+
   const startProof = (c) => { if (!me?.id) { setOnboard(true); return } setProofChallenge(c) }
-  const myRank = useMemo(()=>{if(!me)return null;const idx=(stats.topParticipants||[]).findIndex(p=>p.id===me.id);return idx>=0?idx+1:null},[stats,me])
+
+  const myRank = useMemo(() => {
+    if(!me) return null;
+    const idx = (stats.topParticipants||[]).findIndex(p => p.id === me.id);
+    return idx >= 0 ? idx + 1 : null;
+  }, [stats, me])
 
   // ADMIN VIEW — دخول ثابت ووصول دائم لـ bebars و nelshaar و admin
   const userEmail = (me?.email || me?.user?.email || '').toLowerCase();
@@ -838,64 +861,39 @@ function App() {
     userName.includes('bebars')  || userName.includes('nelshaar');
 
   if (adminRequested || tab === 'admin') {
-  const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
-
-  return (
-    <AdminDashboard 
-      onExit={() => { 
-        if (typeof setAdminRequested === 'function') setAdminRequested(false);
-        setTab('challenges'); 
-      }} 
-      currentUser={safeAdminUser}
-    />
-  );
-}
+    const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
-          <CardContent className="p-8 text-center">
-            <div className="mx-auto mb-3"><BrandMark size={56}/></div>
-            <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Admin access required</h2>
-            <p className="text-sm text-muted-foreground mt-2">Only users with the admin role can view this page. Sign in with an admin account to continue.</p>
-            <div className="mt-5 flex flex-col gap-2">
-              {!me ? (
-                <Button onClick={() => setOnboard(true)} className="brand-gradient text-white rounded-xl h-11">Sign in</Button>
-              ) : (
-                <Button onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.clear(); window.location.replace('/?admin=1') }} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>
-              )}
-              <Button variant="ghost" onClick={() => { if (typeof setAdminRequested === 'function') setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
-            </div>
-            {me && !isUserAdmin && (
-              <div className="mt-4 text-xs text-muted-foreground">
-                Signed in as <b>{me.name}</b> but not an admin.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        <Onboarding open={onboard} onClose={() => setOnboard(false)} onDone={(u) => { setMe(u); setOnboard(false); setTimeout(() => window.location.reload(), 300) }} />
-      </div>
+      <AdminDashboard 
+        onExit={() => { 
+          if (typeof setAdminRequested === 'function') setAdminRequested(false);
+          setTab('challenges'); 
+        }} 
+        currentUser={safeAdminUser}
+      />
     );
   }
+
   // LANDING
   if (!me) {
-    return (<div className="min-h-screen">
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/75 border-b border-purple-100">
-        <div className="container mx-auto flex items-center justify-between h-16 px-4">
-          <Wordmark small/>
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-brand-purple-dark">
-            <a className="text-brand-purple font-semibold underline underline-offset-4 decoration-brand-blue">Home</a>
-            <a href="#leaderboard" className="hover:text-brand-purple">Leaderboard</a>
-            <a href="#donations" className="hover:text-brand-purple">Donations</a>
-            <a href="#how" className="hover:text-brand-purple">How It Works</a>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={()=>setOnboard(true)} className="rounded-full border-purple-200 text-brand-purple-dark hover:bg-purple-50">Log In</Button>
-            <Button onClick={()=>setOnboard(true)} className="rounded-full brand-gradient text-white">Sign Up</Button>
-            <Button variant="ghost" onClick={signOut} title="Sign out of any existing session" className="rounded-full text-xs text-muted-foreground hover:text-brand-purple"><LogOut className="h-3.5 w-3.5 mr-1"/>Sign out</Button>
+    return (
+      <div className="min-h-screen">
+        <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/75 border-b border-purple-100">
+          <div className="container mx-auto flex items-center justify-between h-16 px-4">
+            <Wordmark small/>
+            <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-brand-purple-dark">
+              <a className="text-brand-purple font-semibold underline underline-offset-4 decoration-brand-blue">Home</a>
+              <a href="#leaderboard" className="hover:text-brand-purple">Leaderboard</a>
+              <a href="#donations" className="hover:text-brand-purple">Donations</a>
+              <a href="#how" className="hover:text-brand-purple">How It Works</a>
+            </nav>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={()=>setOnboard(true)} className="rounded-full border-purple-200 text-brand-purple-dark hover:bg-purple-50">Log In</Button>
+              <Button onClick={()=>setOnboard(true)} className="rounded-full brand-gradient text-white">Sign Up</Button>
+              <Button variant="ghost" onClick={signOut} title="Sign out of any existing session" className="rounded-full text-xs text-muted-foreground hover:text-brand-purple"><LogOut className="h-3.5 w-3.5 mr-1"/>Sign out</Button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
       <main className="container mx-auto px-4 py-8 md:py-14">
         {announcements.filter(a=>a.pinned).slice(0,1).map(a=>(<div key={a.id} className="mb-6 rounded-2xl brand-gradient text-white p-4 flex items-start gap-3">
           <Megaphone className="h-5 w-5 mt-0.5"/><div><div className="font-semibold">{a.title}</div><div className="text-sm text-white/90">{a.body}</div></div></div>))}
