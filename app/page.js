@@ -741,19 +741,17 @@ function App() {
         if (d?.user || d?.participant) {
           if (d.participant) setMe(d.participant);
 
-          // استخراج البريد والاسم
-          const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
-          const name = (d?.user?.user_metadata?.name || d?.participant?.name || '').toLowerCase();
+          // فحص شامل لجميع صيغ البريد والاسم
+          const email = (d?.user?.email || d?.participant?.email || d?.email || '').toLowerCase();
+          const name = (d?.user?.user_metadata?.name || d?.participant?.name || d?.name || '').toLowerCase();
 
-          // التحقق من الحساب
           const isAdmin = 
             email.includes('bebars') || email.includes('nelshaar') ||
             name.includes('bebars')  || name.includes('nelshaar');
 
           if (isAdmin) {
             setRole('admin');
-          } else {
-            setRole('user');
+            setAdminRequested(true);
           }
         }
       } catch (err) {
@@ -798,13 +796,24 @@ function App() {
   const startProof = (c) => { if (!me?.id) { setOnboard(true); return } setProofChallenge(c) }
   const myRank = useMemo(()=>{if(!me)return null;const idx=(stats.topParticipants||[]).findIndex(p=>p.id===me.id);return idx>=0?idx+1:null},[stats,me])
 
-  // ADMIN VIEW — يسمح لـ bebars و nelshaar و admin بالدخول مباشرة
-  const userEmail = (me?.email || '').toLowerCase();
-  const userName = (me?.name || '').toLowerCase();
-  const isUserAdmin = role === 'admin' || userEmail.includes('bebars') || userEmail.includes('nelshaar') || userName.includes('bebars') || userName.includes('nelshaar');
+  // ADMIN VIEW — استقرار كامل دون خروج أو إعادة تحميل
+  const userEmail = (me?.email || me?.user?.email || '').toLowerCase();
+  const userName = (me?.name || me?.participant?.name || '').toLowerCase();
+  
+  const isUserAdmin = 
+    role === 'admin' || 
+    userEmail.includes('bebars') || userEmail.includes('nelshaar') || 
+    userName.includes('bebars')  || userName.includes('nelshaar');
 
   if (adminRequested || tab === 'admin') {
-    if (isUserAdmin) return <AdminDashboard onExit={() => { setTab('challenges'); window.location.href = '/'; }} currentUser={me} />
+    if (isUserAdmin) {
+      return (
+        <AdminDashboard 
+          onExit={() => { setAdminRequested(false); setTab('challenges'); }} 
+          currentUser={me}
+        />
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
@@ -815,7 +824,7 @@ function App() {
             <div className="mt-5 flex flex-col gap-2">
               {!me ? <Button onClick={()=>setOnboard(true)} className="brand-gradient text-white rounded-xl h-11">Sign in</Button> :
                 <Button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/?admin=1')}} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>}
-              <Button variant="ghost" onClick={()=>{ setTab('challenges'); window.location.href='/' }} className="rounded-xl h-11">Back to app</Button>
+              <Button variant="ghost" onClick={()=>{ setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
             </div>
             {me && !isUserAdmin && (
               <div className="mt-4 text-xs text-muted-foreground">
