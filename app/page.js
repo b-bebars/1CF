@@ -1012,15 +1012,15 @@ function App() {
     </main>
 
     <Onboarding 
-      open={onboard} 
-      onClose={() => setOnboard(false)} 
-      onDone={(user) => {
-        if (user) setMe(user);
-        setOnboard(false);
-        setTab('challenges');
-      }}
-    />
-  </div>
+        open={onboard} 
+        onClose={() => setOnboard(false)} 
+        onDone={(user) => {
+          if (user) setMe(user);
+          setOnboard(false);
+          setTab('challenges');
+        }}
+      />
+    </div>
   );
 }
 
