@@ -1008,15 +1008,10 @@ function App() {
 <Onboarding 
   open={onboard} 
   onClose={() => setOnboard(false)} 
-  onDone={async (user) => {
-    if (user) setMe(user);
-    setOnboard(false);
-    setTab('challenges');
-    try {
-      await hydrate();
-    } catch (err) {
-      console.error(err);
-    }
-  }}
+ onDone={(user) => {
+  if (user) setMe(user);
+  setOnboard(false);
+  setTab('challenges');
+}}
 />
 export default App
