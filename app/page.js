@@ -838,18 +838,17 @@ function App() {
     userName.includes('bebars')  || userName.includes('nelshaar');
 
   if (adminRequested || tab === 'admin') {
-    const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
+  const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
 
-    // تم حذف شرط isUserAdmin لمنع الطرد نهائياً
-    return (
-      <AdminDashboard 
-        onExit={() => { 
-          if (typeof setAdminRequested === 'function') setAdminRequested(false);
-          setTab('challenges'); 
-        }} 
-        currentUser={safeAdminUser}
-      />
-    );
+  return (
+    <AdminDashboard 
+      onExit={() => { 
+        if (typeof setAdminRequested === 'function') setAdminRequested(false);
+        setTab('challenges'); 
+      }} 
+      currentUser={safeAdminUser}
+    />
+  );
 }
 
     return (
