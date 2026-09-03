@@ -250,11 +250,34 @@ function AdminDashboard({ onExit, currentUser }) {
   const [bonusUser, setBonusUser] = useState(null)
 
   const load = async () => {
-    setAnalytics(await api('admin/analytics'))
-    setParticipants((await api('admin/participants')).participants || [])
-    setChallenges((await api('challenges')).challenges || [])
-    setSubmissions((await api('submissions')).submissions || [])
-    setAnnouncements((await api('announcements')).announcements || [])
+    try {
+      const [aData, pData, cData, sData, anData] = await Promise.allSettled([
+        api('admin/analytics'),
+        api('admin/participants'),
+        api('challenges'),
+        api('submissions'),
+        api('announcements')
+      ])
+
+      if (aData.status === 'fulfilled' && aData.value && !aData.value.error) {
+        setAnalytics(aData.value)
+      } else {
+        setAnalytics({
+          totalParticipants: 0,
+          totalPoints: 0,
+          totalKm: 0,
+          submissions: { pending: 0 },
+          activity: []
+        })
+      }
+
+      if (pData.status === 'fulfilled' && pData.value?.participants) setParticipants(pData.value.participants)
+      if (cData.status === 'fulfilled' && cData.value?.challenges) setChallenges(cData.value.challenges)
+      if (sData.status === 'fulfilled' && sData.value?.submissions) setSubmissions(sData.value.submissions)
+      if (anData.status === 'fulfilled' && anData.value?.announcements) setAnnouncements(anData.value.announcements)
+    } catch (err) {
+      console.error("Admin data load safely handled:", err)
+    }
   }
   useEffect(() => { load() }, [])
 
