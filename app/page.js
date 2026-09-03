@@ -732,10 +732,14 @@ function App() {
   if (d?.participant) {
     setMe(d.participant);
   } else if (!d?.user) {
-    // يمسح المستخدم فقط إذا لم يكن هناك جلسة أو مستخدم مطلقاً
     setMe(null);
   }
-  setRole(d?.user?.role || 'user');
+
+  // فحص ما إذا كان الحساب ينتمي لـ bebars أو nelshaar
+  const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
+  const isAdmin = email.includes('bebars') || email.includes('nelshaar');
+
+  setRole(isAdmin ? 'admin' : 'user');
 }).catch(() => {});
     hydrate()
     const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) hydrate(); else { setMe(null); setRole('user') } })
