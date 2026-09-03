@@ -851,26 +851,64 @@ function App() {
     return idx >= 0 ? idx + 1 : null;
   }, [stats, me])
 
-  // ADMIN VIEW — دخول ثابت ووصول دائم لـ bebars و nelshaar و admin
+  // ADMIN VIEW — حصرياً لحسابات bebars و nelshaar
   const userEmail = (me?.email || me?.user?.email || '').toLowerCase();
   const userName = (me?.name || me?.participant?.name || me?.display_name || '').toLowerCase();
 
   const isUserAdmin = 
-    role === 'admin' || 
     userEmail.includes('bebars') || userEmail.includes('nelshaar') || 
     userName.includes('bebars')  || userName.includes('nelshaar');
 
   if (adminRequested || tab === 'admin') {
-    const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
+    // 1. إذا لم يسجل الدخول بعد
+    if (!me) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-6">
+          <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto mb-3"><BrandMark size={56}/></div>
+              <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Sign in Required</h2>
+              <p className="text-sm text-muted-foreground mt-2">Please sign in to access the admin dashboard.</p>
+              <Button onClick={() => setOnboard(true)} className="mt-5 brand-gradient text-white rounded-xl h-11 w-full">Sign In</Button>
+            </CardContent>
+          </Card>
+          <Onboarding open={onboard} onClose={() => setOnboard(false)} onDone={(u) => { setMe(u); setOnboard(false); setTimeout(() => window.location.reload(), 300) }} />
+        </div>
+      );
+    }
 
+    // 2. إذا كان الحساب هو bebars أو nelshaar
+    if (isUserAdmin) {
+      const safeAdminUser = { ...me, role: 'admin' };
+      return (
+        <AdminDashboard 
+          onExit={() => { 
+            if (typeof setAdminRequested === 'function') setAdminRequested(false);
+            setTab('challenges'); 
+          }} 
+          currentUser={safeAdminUser}
+        />
+      );
+    }
+
+    // 3. إذا كان المقتحم حساباً آخر غير مسموح له
     return (
-      <AdminDashboard 
-        onExit={() => { 
-          if (typeof setAdminRequested === 'function') setAdminRequested(false);
-          setTab('challenges'); 
-        }} 
-        currentUser={safeAdminUser}
-      />
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
+          <CardContent className="p-8 text-center">
+            <div className="mx-auto mb-3"><BrandMark size={56}/></div>
+            <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Admin access required</h2>
+            <p className="text-sm text-muted-foreground mt-2">Only authorized admin accounts can view this page.</p>
+            <div className="mt-5 flex flex-col gap-2">
+              <Button onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.clear(); window.location.replace('/?admin=1') }} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>
+              <Button variant="ghost" onClick={() => { if (typeof setAdminRequested === 'function') setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
+            </div>
+            <div className="mt-4 text-xs text-muted-foreground">
+              Signed in as <b>{me.name || me.display_name}</b> (Not Authorized)
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
