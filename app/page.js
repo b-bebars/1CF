@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 
 const AVATARS = ['🌹','🌷','🌸','🌺','🌻','🌼','💜','✨','🌿','🌟']
+
 const api = async (p, o) => {
   try {
     const res = await fetch(`/api/${p}`, o)
@@ -50,67 +51,91 @@ function BrandMark({ size = 44 }) {
     </svg>
   )
 }
-function Wordmark({ small=false, invert=false }) {
+
+function Wordmark({ small = false, invert = false }) {
   const t = invert ? 'text-white' : 'text-brand-purple-dark'
   const sub = invert ? 'text-white/60' : 'text-brand-purple/70'
-  return (<div className="flex items-center gap-2.5">
-    <BrandMark size={small?34:42}/>
-    <div className="leading-none">
-      <div className={`font-display font-extrabold tracking-tight ${t} ${small?'text-lg':'text-xl'}`}>ROSE UP</div>
-      <div className={`text-[9px] uppercase tracking-[0.18em] ${sub} font-semibold mt-0.5`}>Your Fundraiser, Your Way</div>
+  return (
+    <div className="flex items-center gap-2.5">
+      <BrandMark size={small ? 34 : 42} />
+      <div className="leading-none">
+        <div className={`font-display font-extrabold tracking-tight ${t} ${small ? 'text-lg' : 'text-xl'}`}>ROSE UP</div>
+        <div className={`text-[9px] uppercase tracking-[0.18em] ${sub} font-semibold mt-0.5`}>Your Fundraiser, Your Way</div>
+      </div>
     </div>
-  </div>)
+  )
 }
 
-// Blue rose SVG (simplified for brevity)
-function BlueRose({ className='' }) {
-  return (<svg viewBox="0 0 360 360" className={className}>
-    <defs>
-      <radialGradient id="rblu" cx="45%" cy="40%" r="65%"><stop offset="0%" stopColor="#93c5fd"/><stop offset="60%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#1d4ed8"/></radialGradient>
-      <linearGradient id="stm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7c3aed"/><stop offset="100%" stopColor="#4c1d95"/></linearGradient>
-    </defs>
-    <path d="M180 200 Q182 250 178 320" stroke="url(#stm)" strokeWidth="7" fill="none" strokeLinecap="round"/>
-    <path d="M178 240 Q140 235 118 260 Q150 275 178 260 Z" fill="#7c3aed"/>
-    <path d="M182 275 Q220 270 240 295 Q210 308 182 292 Z" fill="#6d28d9"/>
-    <path d="M180 90 C120 90 80 140 90 190 C100 240 170 245 180 210 C190 245 260 240 270 190 C280 140 240 90 180 90 Z" fill="url(#rblu)"/>
-    <path d="M180 115 C140 115 115 150 125 185 C135 220 175 220 180 200 C185 220 225 220 235 185 C245 150 220 115 180 115 Z" fill="#2563eb" opacity=".85"/>
-    <path d="M180 140 C155 140 140 165 148 185 C156 205 178 205 180 195 C182 205 204 205 212 185 C220 165 205 140 180 140 Z" fill="#1e40af"/>
-    <circle cx="180" cy="176" r="4" fill="#fbbf24"/>
-  </svg>)
+function BlueRose({ className = '' }) {
+  return (
+    <svg viewBox="0 0 360 360" className={className}>
+      <defs>
+        <radialGradient id="rblu" cx="45%" cy="40%" r="65%"><stop offset="0%" stopColor="#93c5fd"/><stop offset="60%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#1d4ed8"/></radialGradient>
+        <linearGradient id="stm" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7c3aed"/><stop offset="100%" stopColor="#4c1d95"/></linearGradient>
+      </defs>
+      <path d="M180 200 Q182 250 178 320" stroke="url(#stm)" strokeWidth="7" fill="none" strokeLinecap="round"/>
+      <path d="M178 240 Q140 235 118 260 Q150 275 178 260 Z" fill="#7c3aed"/>
+      <path d="M182 275 Q220 270 240 295 Q210 308 182 292 Z" fill="#6d28d9"/>
+      <path d="M180 90 C120 90 80 140 90 190 C100 240 170 245 180 210 C190 245 260 240 270 190 C280 140 240 90 180 90 Z" fill="url(#rblu)"/>
+      <path d="M180 115 C140 115 115 150 125 185 C135 220 175 220 180 200 C185 220 225 220 235 185 C245 150 220 115 180 115 Z" fill="#2563eb" opacity=".85"/>
+      <path d="M180 140 C155 140 140 165 148 185 C156 205 178 205 180 195 C182 205 204 205 212 185 C220 165 205 140 180 140 Z" fill="#1e40af"/>
+      <circle cx="180" cy="176" r="4" fill="#fbbf24"/>
+    </svg>
+  )
 }
 
 // ============= ROSE PATH =============
-function RosePath({ points }) {
-  const roses=8, perRose=125, goal=roses*perRose
-  const progress=Math.min(points/goal,1), unlocked=Math.floor(points/perRose)
-  const w=900,h=220
-  const nodes=Array.from({length:roses},(_,i)=>({x:70+(i/(roses-1))*(w-140),y:130+Math.sin((i/(roses-1))*Math.PI*1.4)*-40}))
-  let d=`M ${nodes[0].x} ${nodes[0].y}`
-  for(let i=1;i<nodes.length;i++){const p=nodes[i-1],c=nodes[i];d+=` Q ${(p.x+c.x)/2} ${p.y}, ${c.x} ${c.y}`}
-  const r=progress*(nodes.length-1), si=Math.min(Math.floor(r),nodes.length-2), t=r-si
-  const a=nodes[si], b=nodes[si+1]
-  const wx=a.x+(b.x-a.x)*t, wy=a.y+(b.y-a.y)*t-22
-  return (<div className="rounded-3xl bg-white border border-purple-100 card-elevated p-6">
-    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-      <div><h3 className="font-display text-xl md:text-2xl font-bold text-brand-purple-dark">Your Progress</h3>
-      <p className="text-sm text-muted-foreground">{unlocked}/{roses} roses bloomed on your path</p></div>
-      <Badge className="bg-purple-100 text-brand-purple border-purple-200 hover:bg-purple-100">{points} / {goal} pts</Badge>
+function RosePath({ points = 0 }) {
+  const roses = 8, perRose = 125, goal = roses * perRose
+  const safePoints = Number(points) || 0
+  const progress = Math.min(safePoints / goal, 1), unlocked = Math.floor(safePoints / perRose)
+  const w = 900, h = 220
+  const nodes = Array.from({ length: roses }, (_, i) => ({ x: 70 + (i / (roses - 1)) * (w - 140), y: 130 + Math.sin((i / (roses - 1)) * Math.PI * 1.4) * -40 }))
+  let d = `M ${nodes[0].x} ${nodes[0].y}`
+  for (let i = 1; i < nodes.length; i++) { const p = nodes[i - 1], c = nodes[i]; d += ` Q ${(p.x + c.x) / 2} ${p.y}, ${c.x} ${c.y}` }
+  const r = progress * (nodes.length - 1), si = Math.min(Math.floor(r), nodes.length - 2), t = r - si
+  const a = nodes[si], b = nodes[si + 1]
+  const wx = a.x + (b.x - a.x) * t, wy = a.y + (b.y - a.y) * t - 22
+
+  return (
+    <div className="rounded-3xl bg-white border border-purple-100 card-elevated p-6">
+      <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+        <div>
+          <h3 className="font-display text-xl md:text-2xl font-bold text-brand-purple-dark">Your Progress</h3>
+          <p className="text-sm text-muted-foreground">{unlocked}/{roses} roses bloomed on your path</p>
+        </div>
+        <Badge className="bg-purple-100 text-brand-purple border-purple-200 hover:bg-purple-100">{safePoints} / {goal} pts</Badge>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
+        <defs>
+          <linearGradient id="rpb" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#c4b5fd"/><stop offset="100%" stopColor="#93c5fd"/></linearGradient>
+          <linearGradient id="rpa" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6b21a8"/><stop offset="100%" stopColor="#2563eb"/></linearGradient>
+        </defs>
+        <path d={d} stroke="url(#rpb)" strokeWidth="4" fill="none" strokeLinecap="round" strokeDasharray="2 10" opacity=".85"/>
+        <motion.path d={d} stroke="url(#rpa)" strokeWidth="5" fill="none" strokeLinecap="round" initial={{ pathLength: 0 }} animate={{ pathLength: progress }} transition={{ duration: 1.4, ease: 'easeInOut' }}/>
+        {nodes.map((n, i) => {
+          const u = i < unlocked
+          return (
+            <g key={i} transform={`translate(${n.x} ${n.y})`}>
+              <circle r="14" fill={u ? '#fecdd3' : '#e9d5ff'} opacity={u ? 1 : .5}/>
+              <circle r="9" fill={u ? '#f43f5e' : '#c084fc'} opacity={u ? 1 : .4}/>
+              <circle r="4" fill={u ? '#be123c' : '#7c3aed'} opacity={u ? 1 : .4}/>
+            </g>
+          )
+        })}
+        <g transform={`translate(${nodes[nodes.length - 1].x + 30} ${nodes[nodes.length - 1].y - 25})`}>
+          <line x1="0" y1="0" x2="0" y2="30" stroke="#6b21a8" strokeWidth="2"/>
+          <path d="M 0 0 L 18 6 L 0 12 Z" fill="#3b82f6"/>
+        </g>
+        <motion.g animate={{ x: wx, y: wy }} initial={{ x: nodes[0].x, y: nodes[0].y - 22 }} transition={{ type: 'spring', stiffness: 50, damping: 14 }}>
+          <circle cx="0" cy="-6" r="6" fill="#6b21a8"/>
+          <rect x="-4" y="-1" width="8" height="12" rx="3" fill="#3b82f6"/>
+          <line x1="-2" y1="11" x2="-4" y2="20" stroke="#4c1d95" strokeWidth="3" strokeLinecap="round"/>
+          <line x1="2" y1="11" x2="4" y2="20" stroke="#4c1d95" strokeWidth="3" strokeLinecap="round"/>
+        </motion.g>
+      </svg>
     </div>
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
-      <defs><linearGradient id="rpb" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#c4b5fd"/><stop offset="100%" stopColor="#93c5fd"/></linearGradient>
-      <linearGradient id="rpa" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6b21a8"/><stop offset="100%" stopColor="#2563eb"/></linearGradient></defs>
-      <path d={d} stroke="url(#rpb)" strokeWidth="4" fill="none" strokeLinecap="round" strokeDasharray="2 10" opacity=".85"/>
-      <motion.path d={d} stroke="url(#rpa)" strokeWidth="5" fill="none" strokeLinecap="round" initial={{pathLength:0}} animate={{pathLength:progress}} transition={{duration:1.4,ease:'easeInOut'}}/>
-      {nodes.map((n,i)=>{const u=i<unlocked; return (<g key={i} transform={`translate(${n.x} ${n.y})`}>
-        <circle r="14" fill={u?'#fecdd3':'#e9d5ff'} opacity={u?1:.5}/><circle r="9" fill={u?'#f43f5e':'#c084fc'} opacity={u?1:.4}/><circle r="4" fill={u?'#be123c':'#7c3aed'} opacity={u?1:.4}/>
-      </g>)})}
-      <g transform={`translate(${nodes[nodes.length-1].x+30} ${nodes[nodes.length-1].y-25})`}><line x1="0" y1="0" x2="0" y2="30" stroke="#6b21a8" strokeWidth="2"/><path d="M 0 0 L 18 6 L 0 12 Z" fill="#3b82f6"/></g>
-      <motion.g animate={{x:wx,y:wy}} initial={{x:nodes[0].x,y:nodes[0].y-22}} transition={{type:'spring',stiffness:50,damping:14}}>
-        <circle cx="0" cy="-6" r="6" fill="#6b21a8"/><rect x="-4" y="-1" width="8" height="12" rx="3" fill="#3b82f6"/>
-        <line x1="-2" y1="11" x2="-4" y2="20" stroke="#4c1d95" strokeWidth="3" strokeLinecap="round"/><line x1="2" y1="11" x2="4" y2="20" stroke="#4c1d95" strokeWidth="3" strokeLinecap="round"/>
-      </motion.g>
-    </svg>
-  </div>)
+  )
 }
 
 // ============= UPLOAD PROOF DIALOG =============
@@ -119,89 +144,162 @@ function ProofDialog({ open, onClose, challenge, me, onSubmitted }) {
   const [dataUrl, setDataUrl] = useState(null)
   const [loading, setLoading] = useState(false)
   const fileRef = useRef(null)
+
   const pickFile = async (e) => {
     const f = e.target.files?.[0]; if (!f) return
     const isVideo = f.type.startsWith('video/')
     const isImage = f.type.startsWith('image/')
     if (!isVideo && !isImage) { toast.error('Please pick an image or video'); return }
     const limit = isVideo ? 15 * 1024 * 1024 : 3 * 1024 * 1024
-    if (f.size > limit) { toast.error(`${isVideo?'Video':'Image'} exceeds ${isVideo?'15 MB':'3 MB'} limit`); return }
+    if (f.size > limit) { toast.error(`${isVideo ? 'Video' : 'Image'} exceeds ${isVideo ? '15 MB' : '3 MB'} limit`); return }
     const reader = new FileReader()
     reader.onload = () => setDataUrl(reader.result)
     reader.readAsDataURL(f)
   }
+
   const submit = async () => {
     if (!dataUrl) return toast.error('Please upload a proof image')
+    if (!me?.id) return toast.error('User session not found. Please log in again.')
     setLoading(true)
     try {
-      await api('submissions', { method: 'POST', body: JSON.stringify({
-        userId: me.id, userName: me.name, userAvatar: me.avatar,
-        challengeId: challenge.id, challengeTitle: challenge.title, challengeType: challenge.type || 'weekly',
-        points: challenge.points, km: challenge.km || 0, proofDataUrl: dataUrl, note,
-      })})
+      await api('submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: me.id,
+          userName: me.name || 'Anonymous',
+          userAvatar: me.avatar || '🌹',
+          challengeId: challenge?.id,
+          challengeTitle: challenge?.title || 'Challenge',
+          challengeType: challenge?.type || 'weekly',
+          points: challenge?.points || 0,
+          km: challenge?.km || 0,
+          proofDataUrl: dataUrl,
+          note,
+        })
+      })
       toast.success('Proof submitted!', { description: 'An admin will review it soon.' })
       onSubmitted?.()
       onClose?.()
       setDataUrl(null); setNote('')
-    } catch { toast.error('Submission failed') } finally { setLoading(false) }
+    } catch { 
+      toast.error('Submission failed') 
+    } finally { 
+      setLoading(false) 
+    }
   }
+
   if (!challenge) return null
-  return (<Dialog open={open} onOpenChange={(v)=>!v&&onClose?.()}>
-    <DialogContent className="sm:max-w-lg rounded-3xl">
-      <DialogHeader>
-        <DialogTitle className="font-display text-2xl text-brand-purple-dark flex items-center gap-2"><Upload className="h-5 w-5"/>Submit Proof</DialogTitle>
-        <DialogDescription><b>{challenge.title}</b> · +{challenge.points} pts (pending admin review)</DialogDescription>
-      </DialogHeader>
-      <div className="space-y-3">
-        <div>
-          <input type="file" accept="image/*,video/*" ref={fileRef} onChange={pickFile} className="hidden"/>
-          {dataUrl ? (
-            <div className="relative rounded-2xl overflow-hidden border border-purple-200">
-              {dataUrl.startsWith('data:video')
-                ? <video src={dataUrl} controls className="w-full max-h-64"/>
-                : <img src={dataUrl} alt="proof" className="w-full max-h-64 object-cover"/>}
-            <button onClick={()=>setDataUrl(null)} className="absolute top-2 right-2 h-8 w-8 bg-black/60 text-white rounded-full flex items-center justify-center"><X className="h-4 w-4"/></button></div>
-          ) : (
-            <button onClick={()=>fileRef.current?.click()} className="w-full rounded-2xl border-2 border-dashed border-purple-200 py-10 hover:bg-purple-50 flex flex-col items-center gap-2 text-brand-purple">
-              <Upload className="h-6 w-6"/><div className="font-semibold">Upload photo or video</div><div className="text-xs text-muted-foreground">Image up to 3 MB · Video up to 15 MB</div>
-            </button>
-          )}
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
+      <DialogContent className="sm:max-w-lg rounded-3xl">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl text-brand-purple-dark flex items-center gap-2"><Upload className="h-5 w-5"/>Submit Proof</DialogTitle>
+          <DialogDescription><b>{challenge.title}</b> · +{challenge.points || 0} pts (pending admin review)</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <input type="file" accept="image/*,video/*" ref={fileRef} onChange={pickFile} className="hidden"/>
+            {dataUrl ? (
+              <div className="relative rounded-2xl overflow-hidden border border-purple-200">
+                {dataUrl.startsWith('data:video')
+                  ? <video src={dataUrl} controls className="w-full max-h-64"/>
+                  : <img src={dataUrl} alt="proof" className="w-full max-h-64 object-cover"/>}
+                <button onClick={() => setDataUrl(null)} className="absolute top-2 right-2 h-8 w-8 bg-black/60 text-white rounded-full flex items-center justify-center"><X className="h-4 w-4"/></button>
+              </div>
+            ) : (
+              <button onClick={() => fileRef.current?.click()} className="w-full rounded-2xl border-2 border-dashed border-purple-200 py-10 hover:bg-purple-50 flex flex-col items-center gap-2 text-brand-purple">
+                <Upload className="h-6 w-6"/><div className="font-semibold">Upload photo or video</div><div className="text-xs text-muted-foreground">Image up to 3 MB · Video up to 15 MB</div>
+              </button>
+            )}
+          </div>
+          <Textarea placeholder="Add a note (optional)…" value={note} onChange={(e) => setNote(e.target.value)} className="rounded-xl border-purple-200"/>
         </div>
-        <Textarea placeholder="Add a note (optional)…" value={note} onChange={(e)=>setNote(e.target.value)} className="rounded-xl border-purple-200"/>
-      </div>
-      <DialogFooter>
-        <Button variant="outline" onClick={onClose} className="rounded-xl">Cancel</Button>
-        <Button onClick={submit} disabled={loading} className="brand-gradient text-white rounded-xl">{loading?<Loader2 className="h-4 w-4 animate-spin"/>:'Submit for Review'}</Button>
-      </DialogFooter>
-    </DialogContent></Dialog>)
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} className="rounded-xl">Cancel</Button>
+          <Button onClick={submit} disabled={loading} className="brand-gradient text-white rounded-xl">{loading ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Submit for Review'}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 // ============= LEADERBOARD =============
-function LeaderboardList({ me, compact=false }) {
-  const [rows, setRows] = useState([]); const [q, setQ] = useState(''); const [loading, setLoading] = useState(true)
-  useEffect(()=>{let c=false;const f=async()=>{setLoading(true);const d=await api(`leaderboard?q=${encodeURIComponent(q)}`);if(!c){setRows(d.leaderboard||[]);setLoading(false)}}
-  const t=setTimeout(f,200); return ()=>{c=true;clearTimeout(t)}},[q, me?.points])
-  const list = compact ? rows.slice(0,10) : rows
-  return (<Card className="rounded-3xl border-purple-100 card-elevated bg-white"><CardContent className="p-6">
-    <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-      <div className="flex items-center gap-2">
-        <div className="h-9 w-9 rounded-xl brand-gradient flex items-center justify-center text-white"><Trophy className="h-4 w-4"/></div>
-        <div><h3 className="font-display text-xl font-bold text-brand-purple-dark">Leaderboard</h3><div className="text-xs text-muted-foreground">Global · {rows.length} participants</div></div>
-      </div>
-      {!compact && <div className="relative w-full sm:w-72"><Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
-      <Input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Search…" className="pl-9 rounded-xl border-purple-200"/></div>}
-    </div>
-    <div className="space-y-1.5">
-      {loading && <div className="text-center text-sm text-muted-foreground py-8">Loading…</div>}
-      <AnimatePresence>{list.map((r)=>{const isMe=me&&r.id===me.id;return(<motion.div key={r.id} layout initial={{opacity:0,x:-6}} animate={{opacity:1,x:0}}
-        className={`flex items-center gap-3 rounded-xl px-3 py-2 ${isMe?'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200':'hover:bg-purple-50/50'}`}>
-        <div className={`w-7 text-center font-display font-bold text-sm ${r.rank<=3?'text-brand-purple':'text-muted-foreground'}`}>{r.rank}</div>
-        <div className="text-xl h-9 w-9 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">{r.avatar||'🌹'}</div>
-        <div className="flex-1 min-w-0"><div className="font-semibold text-sm truncate text-brand-purple-dark">{r.name}{isMe && <span className="text-xs text-brand-blue ml-1.5 font-normal">(you)</span>}</div></div>
-        <div className="text-sm font-bold text-brand-purple">{(r.points||0).toLocaleString()} pts</div>
-      </motion.div>)})}</AnimatePresence>
-    </div>
-  </CardContent></Card>)
+function LeaderboardList({ me, compact = false }) {
+  const [rows, setRows] = useState([])
+  const [q, setQ] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    const fetchLeaderboard = async () => {
+      setLoading(true)
+      const d = await api(`leaderboard?q=${encodeURIComponent(q)}`)
+      if (!cancelled) {
+        setRows(Array.isArray(d?.leaderboard) ? d.leaderboard : [])
+        setLoading(false)
+      }
+    }
+    const timer = setTimeout(fetchLeaderboard, 200)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [q, me?.points])
+
+  const list = compact ? rows.slice(0, 10) : rows
+
+  return (
+    <Card className="rounded-3xl border-purple-100 card-elevated bg-white">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl brand-gradient flex items-center justify-center text-white"><Trophy className="h-4 w-4"/></div>
+            <div><h3 className="font-display text-xl font-bold text-brand-purple-dark">Leaderboard</h3><div className="text-xs text-muted-foreground">Global · {rows.length} participants</div></div>
+          </div>
+          {!compact && (
+            <div className="relative w-full sm:w-72">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"/>
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 rounded-xl border-purple-200"/>
+            </div>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          {loading && <div className="text-center text-sm text-muted-foreground py-8">Loading…</div>}
+          {!loading && rows.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No participants found</div>}
+          <AnimatePresence>
+            {list.map((r) => {
+              const isMe = me && r.id === me.id
+              return (
+                <motion.div
+                  key={r.id || r.rank}
+                  layout
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2 ${isMe ? 'bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200' : 'hover:bg-purple-50/50'}`}
+                >
+                  <div className={`w-7 text-center font-display font-bold text-sm ${r.rank <= 3 ? 'text-brand-purple' : 'text-muted-foreground'}`}>{r.rank}</div>
+                  <div className="text-xl h-9 w-9 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">{r.avatar || '🌹'}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm truncate text-brand-purple-dark">{r.name}{isMe && <span className="text-xs text-brand-blue ml-1.5 font-normal">(you)</span>}</div>
+                  </div>
+                  <div className="font-display font-bold text-sm text-brand-purple">{r.points || 0} pts</div>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+        <div className="text-sm font-bold text-brand-purple">{(r.points || 0).toLocaleString()} pts</div>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 // ============= CERTIFICATE =============
@@ -212,37 +310,40 @@ function Certificate({ me }) {
     const s = new XMLSerializer().serializeToString(svg)
     const blob = new Blob([s], { type: 'image/svg+xml' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = `roseup-certificate-${me?.name?.replace(/\s+/g,'-')||'me'}.svg`; a.click()
+    const a = document.createElement('a'); a.href = url; a.download = `roseup-certificate-${me?.name?.replace(/\s+/g, '-') || 'me'}.svg`; a.click()
     URL.revokeObjectURL(url)
   }
-  const km = (me?.km || 0).toFixed(1)
-  return (<Card className="rounded-3xl border-purple-100 card-elevated overflow-hidden bg-white">
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div><h3 className="font-display text-xl font-bold text-brand-purple-dark">Your Digital Certificate</h3><p className="text-xs text-muted-foreground">Generated with your latest stats.</p></div>
-        <Button onClick={download} className="brand-gradient text-white rounded-xl"><Download className="h-4 w-4 mr-1"/>Download</Button>
-      </div>
-      <div className="rounded-2xl overflow-hidden border border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
-        <svg id="cert-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
-          <defs>
-            <linearGradient id="cbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#ffffff"/><stop offset="100%" stopColor="#f5f3ff"/></linearGradient>
-            <linearGradient id="cbrand" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6b21a8"/><stop offset="100%" stopColor="#2563eb"/></linearGradient>
-          </defs>
-          <rect x="0" y="0" width="900" height="560" fill="url(#cbg)"/>
-          <rect x="20" y="20" width="860" height="520" rx="24" fill="none" stroke="url(#cbrand)" strokeWidth="3" strokeDasharray="6 8"/>
-          <g transform="translate(430 90)"><circle r="30" fill="#6b21a8"/><circle r="10" fill="#fbbf24"/></g>
-          <text x="450" y="180" textAnchor="middle" fontFamily="Georgia,serif" fontSize="34" fontWeight="700" fill="#4c1d95">RoseUp Quest 2026</text>
-          <text x="450" y="210" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7c3aed" letterSpacing="4">CERTIFICATE OF PARTICIPATION</text>
-          <text x="450" y="260" textAnchor="middle" fontFamily="sans-serif" fontSize="14" fill="#6b7280">This certifies that</text>
-          <text x="450" y="308" textAnchor="middle" fontFamily="Georgia,serif" fontSize="40" fontWeight="700" fill="#3b82f6">{me?.name || 'Your Name'}</text>
-          <text x="450" y="342" textAnchor="middle" fontFamily="sans-serif" fontSize="14" fill="#6b7280">has actively participated in the RoseUp Quest 2026 campaign.</text>
-          <g transform="translate(160 400)"><text fontFamily="Georgia,serif" fontSize="26" fontWeight="700" fill="#4c1d95">{me?.points || 0}</text><text y="22" fontSize="11" fill="#6b7280">Total Points</text></g>
-          <g transform="translate(360 400)"><text fontFamily="Georgia,serif" fontSize="26" fontWeight="700" fill="#4c1d95">{me?.completed || 0}</text><text y="22" fontSize="11" fill="#6b7280">Challenges Completed</text></g>
-          <g transform="translate(580 400)"><text fontFamily="Georgia,serif" fontSize="26" fontWeight="700" fill="#4c1d95">{km} km</text><text y="22" fontSize="11" fill="#6b7280">Distance Walked</text></g>
-          <text x="450" y="500" textAnchor="middle" fontFamily="sans-serif" fontSize="12" fill="#7c3aed" fontStyle="italic">Every step gives hope.</text>
-        </svg>
-      </div>
-    </CardContent></Card>)
+  const km = Number(me?.km || 0).toFixed(1)
+  return (
+    <Card className="rounded-3xl border-purple-100 card-elevated overflow-hidden bg-white">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div><h3 className="font-display text-xl font-bold text-brand-purple-dark">Your Digital Certificate</h3><p className="text-xs text-muted-foreground">Generated with your latest stats.</p></div>
+          <Button onClick={download} className="brand-gradient text-white rounded-xl"><Download className="h-4 w-4 mr-1"/>Download</Button>
+        </div>
+        <div className="rounded-2xl overflow-hidden border border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+          <svg id="cert-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
+            <defs>
+              <linearGradient id="cbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#ffffff"/><stop offset="100%" stopColor="#f5f3ff"/></linearGradient>
+              <linearGradient id="cbrand" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#6b21a8"/><stop offset="100%" stopColor="#2563eb"/></linearGradient>
+            </defs>
+            <rect x="0" y="0" width="900" height="560" fill="url(#cbg)"/>
+            <rect x="20" y="20" width="860" height="520" rx="24" fill="none" stroke="url(#cbrand)" strokeWidth="3" strokeDasharray="6 8"/>
+            <g transform="translate(430 90)"><circle r="30" fill="#6b21a8"/><circle r="10" fill="#fbbf24"/></g>
+            <text x="450" y="180" textAnchor="middle" fontFamily="Georgia,serif" fontSize="34" fontWeight="700" fill="#4c1d95">RoseUp Quest 2026</text>
+            <text x="450" y="210" textAnchor="middle" fontFamily="sans-serif" fontSize="13" fill="#7c3aed" letterSpacing="4">CERTIFICATE OF PARTICIPATION</text>
+            <text x="450" y="260" textAnchor="middle" fontFamily="sans-serif" fontSize="14" fill="#6b7280">This certifies that</text>
+            <text x="450" y="308" textAnchor="middle" fontFamily="Georgia,serif" fontSize="40" fontWeight="700" fill="#3b82f6">{me?.name || 'Your Name'}</text>
+            <text x="450" y="342" textAnchor="middle" fontFamily="sans-serif" fontSize="14" fill="#6b7280">has actively participated in the RoseUp Quest 2026 campaign.</text>
+            <g transform="translate(160 400)"><text fontFamily="Georgia,serif" fontSize="26" fontWeight="700" fill="#4c1d95">{me?.points || 0}</text><text y="22" fontSize="11" fill="#6b7280">Total Points</text></g>
+            <g transform="translate(360 400)"><text fontFamily="Georgia,serif" fontSize="26" fontWeight="700" fill="#4c1d95">{me?.completed || 0}</text><text y="22" fontSize="11" fill="#6b7280">Challenges Completed</text></g>
+            <g transform="translate(580 400)"><text fontFamily="Georgia,serif" fontSize="26" fontWeight="700" fill="#4c1d95">{km} km</text><text y="22" fontSize="11" fill="#6b7280">Distance Walked</text></g>
+            <text x="450" y="500" textAnchor="middle" fontFamily="sans-serif" fontSize="12" fill="#7c3aed" fontStyle="italic">Every step gives hope.</text>
+          </svg>
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 // ============= ADMIN =============
@@ -254,7 +355,7 @@ function AdminDashboard({ onExit, currentUser }) {
   const [submissions, setSubmissions] = useState([])
   const [announcements, setAnnouncements] = useState([])
   const [busy, setBusy] = useState(false)
-  const [editing, setEditing] = useState(null) // challenge being edited
+  const [editing, setEditing] = useState(null)
   const [proofView, setProofView] = useState(null)
   const [bonusUser, setBonusUser] = useState(null)
 
@@ -262,12 +363,10 @@ function AdminDashboard({ onExit, currentUser }) {
     try {
       const sb = createClient();
 
-      // 1. جلب سجلات الإكمال لحساب كم شخص شارك في كل تحدي
       const { data: completionsData } = await sb
         .from('challenge_completions')
         .select('challenge_id');
 
-      // تجميع أعداد المشاركين لكل challenge_id
       const completionCounts = (completionsData || []).reduce((acc, curr) => {
         acc[curr.challenge_id] = (acc[curr.challenge_id] || 0) + 1;
         return acc;
@@ -295,7 +394,6 @@ function AdminDashboard({ onExit, currentUser }) {
 
       if (pData.status === 'fulfilled' && pData.value?.participants) setParticipants(pData.value.participants)
 
-      // 2. دمج عدد المشاركين مع بيانات التحديات المجلوبة
       if (cData.status === 'fulfilled' && cData.value?.challenges) {
         const enrichedChallenges = cData.value.challenges.map(c => ({
           ...c,
@@ -310,30 +408,68 @@ function AdminDashboard({ onExit, currentUser }) {
       console.error("Admin data load safely handled:", err)
     }
   }
+
   useEffect(() => { load() }, [])
 
   const saveChallenge = async (c) => {
     setBusy(true)
     try {
-      if (c._new) { delete c._new; await api('challenges', { method:'POST', body: JSON.stringify(c) }) }
-      else await api(`challenges/${c.id}`, { method: 'PUT', body: JSON.stringify(c) })
+      const headers = { 'Content-Type': 'application/json' }
+      if (c._new) {
+        delete c._new;
+        await api('challenges', { method: 'POST', headers, body: JSON.stringify(c) })
+      } else {
+        await api(`challenges/${c.id}`, { method: 'PUT', headers, body: JSON.stringify(c) })
+      }
       toast.success('Saved'); setEditing(null); load()
     } catch { toast.error('Failed') } finally { setBusy(false) }
   }
-  const deleteChallenge = async (id) => { if (!confirm('Delete?')) return; await api(`challenges/${id}`, { method: 'DELETE' }); toast.success('Deleted'); load() }
-  const approve = async (id) => { await api(`submissions/${id}/approve`, { method: 'POST' }); toast.success('Approved & points awarded'); load() }
-  const reject = async (id) => { const r = prompt('Reason (optional):') || ''; await api(`submissions/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason: r }) }); toast('Rejected'); load() }
+
+  const deleteChallenge = async (id) => {
+    if (!confirm('Delete?')) return;
+    await api(`challenges/${id}`, { method: 'DELETE' });
+    toast.success('Deleted'); load()
+  }
+
+  const approve = async (id) => {
+    await api(`submissions/${id}/approve`, { method: 'POST' });
+    toast.success('Approved & points awarded'); load()
+  }
+
+  const reject = async (id) => {
+    const r = prompt('Reason (optional):') || '';
+    await api(`submissions/${id}/reject`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: r }) });
+    toast('Rejected'); load()
+  }
+
   const awardBonus = async () => {
     if (!bonusUser) return
-    await api('admin/bonus', { method: 'POST', body: JSON.stringify({ userId: bonusUser.id, points: bonusUser.pts, reason: bonusUser.reason }) })
+    await api('admin/bonus', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: bonusUser.id, points: bonusUser.pts, reason: bonusUser.reason })
+    })
     toast.success(`+${bonusUser.pts} pts to ${bonusUser.name}`); setBonusUser(null); load()
   }
-  const removeParticipant = async (id) => { if (!confirm('Remove this participant?')) return; await api(`participants/${id}`, { method: 'DELETE' }); toast.success('Removed'); load() }
+
+  const removeParticipant = async (id) => {
+    if (!confirm('Remove this participant?')) return;
+    await api(`participants/${id}`, { method: 'DELETE' });
+    toast.success('Removed'); load()
+  }
+
   const addAnnouncement = async (title, body, pinned) => {
-    await api('announcements', { method: 'POST', body: JSON.stringify({ title, body, pinned }) })
+    await api('announcements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, pinned })
+    })
     toast.success('Announcement posted'); load()
   }
-  const delAnnouncement = async (id) => { await api(`announcements/${id}`, { method: 'DELETE' }); load() }
+
+  const delAnnouncement = async (id) => {
+    await api(`announcements/${id}`, { method: 'DELETE' }); load()
+  }
 
   const items = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -341,268 +477,432 @@ function AdminDashboard({ onExit, currentUser }) {
     { id: 'challenges', label: 'Challenges', icon: ListChecks },
     { id: 'submissions', label: 'Review Submissions', icon: Eye },
     { id: 'bonus', label: 'Award Bonus', icon: Sparkles },
- { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'donations', label: 'Donations', icon: Heart },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'settings', label: 'Settings', icon: Shield },
   ]
 
-  // 1. شاشة التحميل لمنع انهيار الصفحة قبل وصول البيانات عند تسجيل الدخول
-  if (loading || !me) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-purple-50">
-        <div className="text-center space-y-3">
-          <Loader2 className="h-8 w-8 animate-spin text-brand-purple mx-auto" />
-          <p className="text-sm text-muted-foreground font-medium">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. تصفية التحديات بحماية (challenges || []) لمنع خطأ client-side exception
+  // تصفية التحديات بحماية آمنة بدون استدعاء متغيرات غير معرفة
   const filteredDaily = (challenges || []).filter(c => (c.type === 'daily' || !c.type) && c.active !== false);
   const filteredWeekly = (challenges || []).filter(c => c.type === 'weekly' && c.active !== false);
   const filteredSpecial = (challenges || []).filter(c => c.type === 'special' && c.active !== false);
 
-  return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
-    <aside className="hidden lg:flex sticky top-0 h-screen w-72 flex-col bg-gradient-to-b from-brand-purple-dark via-brand-purple to-[#4c1d95] text-white">
-      <div className="p-5 flex items-center justify-between">
-        <Wordmark small invert/>
-      </div>
-      <div className="px-5 pb-2"><Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-400"><Shield className="h-3 w-3 mr-1"/>Admin</Badge></div>
-      <nav className="px-3 py-2 space-y-1 flex-1 overflow-y-auto">
-        {items.map(({id,label,icon:Icon})=>{const a=tab===id;return(<button key={id} onClick={()=>setTab(id)}
-          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm ${a?'bg-white text-brand-purple-dark font-semibold shadow-lg':'text-white/85 hover:bg-white/10'}`}>
-          <Icon className="h-4 w-4"/>{label}
-        </button>)})}
-      </nav>
+  return (
+    <div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
+      <aside className="hidden lg:flex sticky top-0 h-screen w-72 flex-col bg-gradient-to-b from-brand-purple-dark via-brand-purple to-[#4c1d95] text-white">
+        <div className="p-5 flex items-center justify-between">
+          <Wordmark small invert/>
+        </div>
+        <div className="px-5 pb-2">
+          <Badge className="bg-yellow-400 text-yellow-900 hover:bg-yellow-400"><Shield className="h-3 w-3 mr-1"/>Admin</Badge>
+        </div>
+        <nav className="px-3 py-2 space-y-1 flex-1 overflow-y-auto">
+          {items.map(({ id, label, icon: Icon }) => {
+            const a = tab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm ${a ? 'bg-white text-brand-purple-dark font-semibold shadow-lg' : 'text-white/85 hover:bg-white/10'}`}
+              >
+                <Icon className="h-4 w-4"/>{label}
+              </button>
+            )
+          })}
+        </nav>
         <div className="p-3 border-t border-white/10 space-y-1">
           <button onClick={onExit} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><X className="h-4 w-4"/>Exit Admin</button>
-          <button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/')}} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><LogOut className="h-4 w-4"/>Log Out</button>
+          <button onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.clear(); window.location.replace('/') }} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><LogOut className="h-4 w-4"/>Log Out</button>
         </div>
-    </aside>
-    <main className="flex-1 min-w-0 p-4 md:p-8 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <div className="font-display text-2xl md:text-3xl font-bold text-brand-purple-dark">Admin Dashboard</div>
-          <div className="text-sm text-muted-foreground">Manage RoseUp Quest 2026</div>
-        </div>
-        <div className="lg:hidden">
-          <select value={tab} onChange={(e)=>setTab(e.target.value)} className="rounded-xl border border-purple-200 px-3 py-2 text-sm">
-            {items.map(i=><option key={i.id} value={i.id}>{i.label}</option>)}
-          </select>
-        </div>
-      </div>
+      </aside>
 
-      {tab === 'overview' && analytics && (<>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            {label:'Participants',value:analytics.totalParticipants,icon:<Users className="h-4 w-4"/>},
-            {label:'Total Points',value:analytics.totalPoints?.toLocaleString(),icon:<Sparkles className="h-4 w-4"/>},
-            {label:'Total km',value:`${analytics.totalKm}`,icon:<MapPin className="h-4 w-4"/>},
-            {label:'Pending Reviews',value:analytics.submissions.pending,icon:<Clock className="h-4 w-4"/>},
-          ].map((s,i)=>(<Card key={i} className="rounded-2xl border-purple-100 card-elevated"><CardContent className="p-4">
-            <div className="flex items-center gap-2 text-brand-purple text-xs uppercase font-semibold">{s.icon}{s.label}</div>
-            <div className="font-display text-2xl font-bold mt-1 text-brand-purple-dark">{s.value}</div>
-          </CardContent></Card>))}
-        </div>
-        <Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-          <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Submissions this week</div>
-          <div className="flex items-end gap-2 h-40">
-            {analytics.activity.map((d,i)=>(<div key={i} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full brand-gradient rounded-t-lg" style={{height:`${Math.max(4,d.submissions*24)}px`}}/>
-              <div className="text-[10px] text-muted-foreground">{d.day}</div><div className="text-xs font-semibold text-brand-purple">{d.submissions}</div>
-            </div>))}
+      <main className="flex-1 min-w-0 p-4 md:p-8 space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <div className="font-display text-2xl md:text-3xl font-bold text-brand-purple-dark">Admin Dashboard</div>
+            <div className="text-sm text-muted-foreground">Manage RoseUp Quest 2026</div>
           </div>
-        </CardContent></Card>
+          <div className="lg:hidden">
+            <select value={tab} onChange={(e) => setTab(e.target.value)} className="rounded-xl border border-purple-200 px-3 py-2 text-sm">
+              {items.map(i => <option key={i.id} value={i.id}>{i.label}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {tab === 'overview' && analytics && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'Participants', value: analytics.totalParticipants, icon: <Users className="h-4 w-4"/> },
+            {label: 'Total Points', value: analytics.totalPoints?.toLocaleString() || '0', icon: <Sparkles className="h-4 w-4"/>},
+            {label: 'Total km', value: `${analytics.totalKm || 0}`, icon: <MapPin className="h-4 w-4"/>},
+            {label: 'Pending Reviews', value: analytics.submissions?.pending || 0, icon: <Clock className="h-4 w-4"/>},
+          ].map((s, i) => (
+            <Card key={i} className="rounded-2xl border-purple-100 card-elevated">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-brand-purple text-xs uppercase font-semibold">{s.icon}{s.label}</div>
+                <div className="font-display text-2xl font-bold mt-1 text-brand-purple-dark">{s.value}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Submissions this week</div>
+            <div className="flex items-end gap-2 h-40">
+              {(analytics.activity || []).map((d, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full brand-gradient rounded-t-lg" style={{ height: `${Math.max(4, (d.submissions || 0) * 24)}px` }}/>
+                  <div className="text-[10px] text-muted-foreground">{d.day}</div>
+                  <div className="text-xs font-semibold text-brand-purple">{d.submissions || 0}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </>)}
 
-      {tab === 'participants' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4"><div className="font-display text-lg font-bold text-brand-purple-dark">Participants ({participants.length})</div>
-          <Button asChild variant="outline" className="rounded-xl border-purple-200"><a href="/api/admin/export.csv"><FileSpreadsheet className="h-4 w-4 mr-1"/>Export CSV</a></Button>
-        </div>
-        <div className="overflow-x-auto"><table className="w-full text-sm">
-          <thead><tr className="text-left text-muted-foreground border-b"><th className="py-2">Rank</th><th>Name</th><th>Points</th><th>km</th><th>Streak</th><th>Done</th><th></th></tr></thead>
-          <tbody>{participants.map((p,i)=>(<tr key={p.id} className="border-b hover:bg-purple-50/40">
-            <td className="py-2 font-semibold text-brand-purple">#{i+1}</td>
-            <td className="py-2"><div className="flex items-center gap-2"><span className="text-lg">{p.avatar}</span><span className="font-semibold text-brand-purple-dark">{p.name}</span></div></td>
-            <td>{p.points||0}</td><td>{(p.km||0).toFixed?.(1)}</td><td>{p.streak||0}</td><td>{p.completed||0}</td>
-            <td className="text-right"><button onClick={()=>removeParticipant(p.id)} className="text-red-500 hover:text-red-700"><Trash2 className="h-4 w-4"/></button></td>
-          </tr>))}</tbody></table></div>
-      </CardContent></Card>)}
-
-      {tab === 'challenges' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="font-display text-lg font-bold text-brand-purple-dark">Challenges ({challenges.length})</div>
-          <Button onClick={()=>setEditing({_new:true,type:'daily',title:'',description:'',icon:'⭐',points:100,active:true})} className="brand-gradient text-white rounded-xl"><Plus className="h-4 w-4 mr-1"/>New Challenge</Button>
-        </div>
-        <div className="grid md:grid-cols-2 gap-3">{challenges.map(c=>(<div key={c.id} className="rounded-2xl border border-purple-100 p-4 flex items-start gap-3">
-          <div className="text-2xl h-11 w-11 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">{c.icon}</div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2"><span className="font-semibold text-brand-purple-dark">{c.title}</span>
-              <Badge variant="outline" className="text-xs capitalize border-purple-200">{c.type}</Badge>
-              {!c.active && <Badge variant="outline" className="text-xs">inactive</Badge>}
+      {tab === 'participants' && (
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="font-display text-lg font-bold text-brand-purple-dark">Participants ({participants.length})</div>
+              <Button asChild variant="outline" className="rounded-xl border-purple-200">
+                <a href="/api/admin/export.csv"><FileSpreadsheet className="h-4 w-4 mr-1"/>Export CSV</a>
+              </Button>
             </div>
-            <div className="text-xs text-muted-foreground truncate">{c.description}</div>
-            <div className="flex items-center gap-2 mt-1 text-xs">
-              <span className="text-brand-purple font-semibold">+{c.points} pts</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground font-medium">👥 {c.participantsCount || 0} participants</span>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-muted-foreground border-b"><th className="py-2">Rank</th><th>Name</th><th>Points</th><th>km</th><th>Streak</th><th>Done</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {participants.map((p, i) => (
+                    <tr key={p.id || i} className="border-b hover:bg-purple-50/40">
+                      <td className="py-2 font-semibold text-brand-purple">#{i + 1}</td>
+                      <td className="py-2"><div className="flex items-center gap-2"><span className="text-lg">{p.avatar || '🌹'}</span><span className="font-semibold text-brand-purple-dark">{p.name || 'User'}</span></div></td>
+                      <td>{p.points || 0}</td>
+                      <td>{Number(p.km || 0).toFixed(1)}</td>
+                      <td>{p.streak || 0}</td>
+                      <td>{p.completed || 0}</td>
+                      <td className="text-right">
+                        <button onClick={() => removeParticipant(p.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="h-4 w-4"/></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
-          <div className="flex gap-1"><button onClick={()=>setEditing({...c})} className="p-1.5 rounded-lg hover:bg-purple-50 text-brand-purple"><Edit3 className="h-4 w-4"/></button>
-          <button onClick={()=>deleteChallenge(c.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 className="h-4 w-4"/></button></div>
-        </div>))}</div>
-      </CardContent></Card>)}
+          </CardContent>
+        </Card>
+      )}
 
-      {tab === 'submissions' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-        <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Review Submissions ({submissions.length})</div>
-        <div className="grid md:grid-cols-2 gap-3">{submissions.length === 0 && <div className="text-sm text-muted-foreground">No submissions yet.</div>}
-        {submissions.map(s=>(<div key={s.id} className="rounded-2xl border border-purple-100 p-3">
-          {s.proofDataUrl && <img src={s.proofDataUrl} alt="proof" className="w-full h-32 object-cover rounded-xl cursor-pointer" onClick={()=>setProofView(s)}/>}
-          <div className="mt-2 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="text-xs text-muted-foreground">{s.userAvatar} {s.userName}</div>
-              <div className="font-semibold text-sm truncate text-brand-purple-dark">{s.challengeTitle}</div>
-              <div className="text-xs text-brand-purple">+{s.points} pts</div>
+      {tab === 'challenges' && (
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="font-display text-lg font-bold text-brand-purple-dark">Challenges ({challenges.length})</div>
+              <Button onClick={() => setEditing({ _new: true, type: 'daily', title: '', description: '', icon: '⭐', points: 100, active: true })} className="brand-gradient text-white rounded-xl">
+                <Plus className="h-4 w-4 mr-1"/>New Challenge
+              </Button>
             </div>
-            <Badge className={s.status==='approved'?'bg-emerald-100 text-emerald-700':s.status==='rejected'?'bg-red-100 text-red-700':'bg-amber-100 text-amber-700'}>
-              {s.status==='approved'?<CheckCircle2 className="h-3 w-3 mr-1"/>:s.status==='rejected'?<XCircle className="h-3 w-3 mr-1"/>:<Clock className="h-3 w-3 mr-1"/>}{s.status}
-            </Badge>
-          </div>
-          {s.note && <div className="text-xs text-muted-foreground italic mt-1">"{s.note}"</div>}
-          {s.status==='pending' && (<div className="mt-2 flex gap-2">
-            <Button size="sm" onClick={()=>approve(s.id)} className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs">Approve</Button>
-            <Button size="sm" onClick={()=>reject(s.id)} variant="outline" className="flex-1 h-8 rounded-lg text-xs border-red-200 text-red-600 hover:bg-red-50">Reject</Button>
-          </div>)}
-        </div>))}</div>
-      </CardContent></Card>)}
+            <div className="grid md:grid-cols-2 gap-3">
+              {challenges.map(c => (
+                <div key={c.id} className="rounded-2xl border border-purple-100 p-4 flex items-start gap-3 bg-white">
+                  <div className="text-2xl h-11 w-11 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">{c.icon || '⭐'}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-brand-purple-dark">{c.title}</span>
+                      <Badge variant="outline" className="text-xs capitalize border-purple-200">{c.type || 'daily'}</Badge>
+                      {!c.active && <Badge variant="outline" className="text-xs bg-gray-100">inactive</Badge>}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate mt-0.5">{c.description}</div>
+                    <div className="flex items-center gap-2 mt-1 text-xs">
+                      <span className="text-brand-purple font-semibold">+{c.points || 0} pts</span>
+                      <span className="text-muted-foreground">•</span>
+                      <span className="text-muted-foreground font-medium">👥 {c.participantsCount || 0} participants</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => setEditing({ ...c })} className="p-1.5 rounded-lg hover:bg-purple-50 text-brand-purple"><Edit3 className="h-4 w-4"/></button>
+                    <button onClick={() => deleteChallenge(c.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 className="h-4 w-4"/></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {tab === 'bonus' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-        <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Award Bonus Points</div>
-        <div className="grid md:grid-cols-2 gap-2">{participants.slice(0,20).map(p=>(<div key={p.id} className="flex items-center gap-3 rounded-xl border border-purple-100 p-2">
-          <span className="text-lg">{p.avatar}</span><div className="flex-1 min-w-0"><div className="text-sm font-semibold truncate text-brand-purple-dark">{p.name}</div><div className="text-xs text-muted-foreground">{p.points} pts</div></div>
-          <Button size="sm" onClick={()=>setBonusUser({id:p.id,name:p.name,pts:25,reason:'Bonus event'})} className="brand-gradient text-white rounded-lg h-8"><Sparkles className="h-3 w-3 mr-1"/>Award</Button>
-        </div>))}</div>
-      </CardContent></Card>)}
+      {tab === 'submissions' && (
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Review Submissions ({submissions.length})</div>
+            <div className="grid md:grid-cols-2 gap-3">
+              {submissions.length === 0 && <div className="text-sm text-muted-foreground col-span-2 py-4 text-center">No submissions yet.</div>}
+              {submissions.map(s => (
+                <div key={s.id} className="rounded-2xl border border-purple-100 p-3 bg-white">
+                  {s.proofDataUrl && (
+                    s.proofDataUrl.startsWith('data:video') ? (
+                      <video src={s.proofDataUrl} controls className="w-full h-32 object-cover rounded-xl cursor-pointer" />
+                    ) : (
+                      <img src={s.proofDataUrl} alt="proof" className="w-full h-32 object-cover rounded-xl cursor-pointer" onClick={() => setProofView(s)}/>
+                    )
+                  )}
+                  <div className="mt-2 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-xs text-muted-foreground">{s.userAvatar || '🌹'} {s.userName || 'Anonymous'}</div>
+                      <div className="font-semibold text-sm truncate text-brand-purple-dark">{s.challengeTitle}</div>
+                      <div className="text-xs text-brand-purple">+{s.points || 0} pts</div>
+                    </div>
+                    <Badge className={s.status === 'approved' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : s.status === 'rejected' ? 'bg-red-100 text-red-700 hover:bg-red-100' : 'bg-amber-100 text-amber-700 hover:bg-amber-100'}>
+                      {s.status === 'approved' ? <CheckCircle2 className="h-3 w-3 mr-1"/> : s.status === 'rejected' ? <XCircle className="h-3 w-3 mr-1"/> : <Clock className="h-3 w-3 mr-1"/>}{s.status}
+                    </Badge>
+                  </div>
+                  {s.note && <div className="text-xs text-muted-foreground italic mt-1">"{s.note}"</div>}
+                  {s.status === 'pending' && (
+                    <div className="mt-3 flex gap-2">
+                      <Button size="sm" onClick={() => approve(s.id)} className="flex-1 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs">Approve</Button>
+                      <Button size="sm" onClick={() => reject(s.id)} variant="outline" className="flex-1 h-8 rounded-lg text-xs border-red-200 text-red-600 hover:bg-red-50">Reject</Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {tab === 'bonus' && (
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Award Bonus Points</div>
+            <div className="grid md:grid-cols-2 gap-2">
+              {participants.slice(0, 20).map(p => (
+                <div key={p.id} className="flex items-center gap-3 rounded-xl border border-purple-100 p-2 bg-white">
+                  <span className="text-lg">{p.avatar || '🌹'}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold truncate text-brand-purple-dark">{p.name || 'User'}</div>
+                    <div className="text-xs text-muted-foreground">{p.points || 0} pts</div>
+                  </div>
+                  <Button size="sm" onClick={() => setBonusUser({ id: p.id, name: p.name, pts: 25, reason: 'Bonus event' })} className="brand-gradient text-white rounded-lg h-8">
+                    <Sparkles className="h-3 w-3 mr-1"/>Award
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {tab === 'leaderboard' && <LeaderboardList me={null}/>}
 
-      {tab === 'donations' && analytics && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-        <div className="font-display text-lg font-bold text-brand-purple-dark mb-4">Donation Statistics</div>
-        <div className="grid md:grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 p-5"><div className="text-xs uppercase text-brand-purple font-semibold">Raised</div><div className="font-display text-3xl font-bold text-brand-purple-dark mt-1">€{Math.round(analytics.totalPoints*1.25+12480).toLocaleString()}</div></div>
-          <div className="rounded-2xl bg-purple-50 p-5"><div className="text-xs uppercase text-brand-purple font-semibold">Donors</div><div className="font-display text-3xl font-bold text-brand-purple-dark mt-1">1,245</div></div>
-          <div className="rounded-2xl bg-blue-50 p-5"><div className="text-xs uppercase text-brand-blue font-semibold">Avg. Donation</div><div className="font-display text-3xl font-bold text-brand-purple-dark mt-1">€42</div></div>
-        </div>
-      </CardContent></Card>)}
+      {tab === 'donations' && analytics && (
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="font-display text-lg font-bold text-brand-purple-dark mb-4">Donation Statistics</div>
+            <div className="grid md:grid-cols-3 gap-3">
+              <div className="rounded-2xl bg-gradient-to-br from-purple-100 to-blue-100 p-5">
+                <div className="text-xs uppercase text-brand-purple font-semibold">Raised</div>
+                <div className="font-display text-3xl font-bold text-brand-purple-dark mt-1">€{Math.round((analytics.totalPoints || 0) * 1.25 + 12480).toLocaleString()}</div>
+              </div>
+              <div className="rounded-2xl bg-purple-50 p-5">
+                <div className="text-xs uppercase text-brand-purple font-semibold">Donors</div>
+                <div className="font-display text-3xl font-bold text-brand-purple-dark mt-1">1,245</div>
+              </div>
+              <div className="rounded-2xl bg-blue-50 p-5">
+                <div className="text-xs uppercase text-brand-blue font-semibold">Avg. Donation</div>
+                <div className="font-display text-3xl font-bold text-brand-purple-dark mt-1">€42</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-      {tab === 'analytics' && analytics && (<div className="grid md:grid-cols-2 gap-4">
-        <Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-          <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Submissions Breakdown</div>
-          {['pending','approved','rejected'].map(k=>{const v=analytics.submissions[k],pct=Math.round((v/(analytics.submissions.total||1))*100);
-            const color=k==='approved'?'bg-emerald-500':k==='rejected'?'bg-red-500':'bg-amber-500'
-            return(<div key={k} className="mb-3"><div className="flex justify-between text-sm mb-1"><span className="capitalize">{k}</span><span className="font-semibold">{v} · {pct}%</span></div>
-            <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={`h-full ${color}`} style={{width:`${pct}%`}}/></div></div>)})}
-        </CardContent></Card>
-        <Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-          <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Campaign Health</div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span>Total challenges configured</span><b>{analytics.totalChallenges}</b></div>
-            <div className="flex justify-between"><span>Active participants</span><b>{analytics.totalParticipants}</b></div>
-            <div className="flex justify-between"><span>Total km walked</span><b>{analytics.totalKm}</b></div>
-            <div className="flex justify-between"><span>Points issued</span><b>{analytics.totalPoints?.toLocaleString()}</b></div>
-          </div>
-        </CardContent></Card>
-      </div>)}
+      {tab === 'analytics' && analytics && (
+        <div className="grid md:grid-cols-2 gap-4">
+          <Card className="rounded-3xl border-purple-100 card-elevated">
+            <CardContent className="p-6">
+              <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Submissions Breakdown</div>
+              {['pending', 'approved', 'rejected'].map(k => {
+                const totalSubs = analytics.submissions?.total || 1
+                const v = analytics.submissions?.[k] || 0
+                const pct = Math.round((v / totalSubs) * 100)
+                const color = k === 'approved' ? 'bg-emerald-500' : k === 'rejected' ? 'bg-red-500' : 'bg-amber-500'
+                return (
+                  <div key={k} className="mb-3">
+                    <div className="flex justify-between text-sm mb-1"><span className="capitalize">{k}</span><span className="font-semibold">{v} · {pct}%</span></div>
+                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden"><div className={`h-full ${color}`} style={{ width: `${pct}%` }}/></div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
+          <Card className="rounded-3xl border-purple-100 card-elevated">
+            <CardContent className="p-6">
+              <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Campaign Health</div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span>Total challenges configured</span><b>{analytics.totalChallenges || 0}</b></div>
+                <div className="flex justify-between"><span>Active participants</span><b>{analytics.totalParticipants || 0}</b></div>
+                <div className="flex justify-between"><span>Total km walked</span><b>{analytics.totalKm || 0}</b></div>
+                <div className="flex justify-between"><span>Points issued</span><b>{(analytics.totalPoints || 0).toLocaleString()}</b></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {tab === 'announcements' && (<AnnouncementsAdmin items={announcements} onAdd={addAnnouncement} onDelete={delAnnouncement}/>)}
 
-      {tab === 'settings' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-        <div className="font-display text-lg font-bold text-brand-purple-dark mb-2">Settings</div>
-        <p className="text-sm text-muted-foreground">Third-party integrations (Supabase Auth/Storage/Database, Stripe donations, email notifications) will be configured here in the final phase.</p>
-        <div className="mt-4 grid md:grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-dashed border-purple-200 p-4"><div className="font-semibold text-brand-purple-dark">Supabase</div><div className="text-xs text-muted-foreground mt-1">Auth · Storage · DB — pending</div></div>
-          <div className="rounded-2xl border border-dashed border-purple-200 p-4"><div className="font-semibold text-brand-purple-dark">Stripe</div><div className="text-xs text-muted-foreground mt-1">Donation checkout — pending</div></div>
-        </div>
-      </CardContent></Card>)}
+      {tab === 'settings' && (
+        <Card className="rounded-3xl border-purple-100 card-elevated">
+          <CardContent className="p-6">
+            <div className="font-display text-lg font-bold text-brand-purple-dark mb-2">Settings</div>
+            <p className="text-sm text-muted-foreground">Third-party integrations (Supabase Auth/Storage/Database, Stripe donations, email notifications) will be configured here in the final phase.</p>
+            <div className="mt-4 grid md:grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-dashed border-purple-200 p-4"><div className="font-semibold text-brand-purple-dark">Supabase</div><div className="text-xs text-muted-foreground mt-1">Auth · Storage · DB — pending</div></div>
+              <div className="rounded-2xl border border-dashed border-purple-200 p-4"><div className="font-semibold text-brand-purple-dark">Stripe</div><div className="text-xs text-muted-foreground mt-1">Donation checkout — pending</div></div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </main>
 
     {/* Challenge edit dialog */}
-    <Dialog open={!!editing} onOpenChange={(v)=>!v&&setEditing(null)}>
+    <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
       <DialogContent className="sm:max-w-lg rounded-3xl">
-        <DialogHeader><DialogTitle className="font-display text-xl">{editing?._new?'New Challenge':'Edit Challenge'}</DialogTitle></DialogHeader>
-        {editing && (<div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs font-semibold mb-1 block">Type</label>
-              <select value={editing.type} onChange={(e)=>setEditing({...editing,type:e.target.value})} className="w-full h-10 rounded-xl border border-purple-200 px-3 text-sm">
-                <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="special">Special</option>
-              </select></div>
-            <div><label className="text-xs font-semibold mb-1 block">Icon</label><Input value={editing.icon||''} onChange={(e)=>setEditing({...editing,icon:e.target.value})} className="rounded-xl border-purple-200"/></div>
+        <DialogHeader><DialogTitle className="font-display text-xl">{editing?._new ? 'New Challenge' : 'Edit Challenge'}</DialogTitle></DialogHeader>
+        {editing && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold mb-1 block">Type</label>
+                <select value={editing.type || 'daily'} onChange={(e) => setEditing({ ...editing, type: e.target.value })} className="w-full h-10 rounded-xl border border-purple-200 px-3 text-sm">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="special">Special</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold mb-1 block">Icon</label>
+                <Input value={editing.icon || ''} onChange={(e) => setEditing({ ...editing, icon: e.target.value })} className="rounded-xl border-purple-200"/>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block">Title</label>
+              <Input value={editing.title || ''} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="rounded-xl border-purple-200"/>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block">Description</label>
+              <Textarea value={editing.description || ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })} className="rounded-xl border-purple-200"/>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold mb-1 block">Points</label>
+                <Input type="number" value={editing.points || 0} onChange={(e) => setEditing({ ...editing, points: Number(e.target.value) })} className="rounded-xl border-purple-200"/>
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Switch checked={!!editing.active} onCheckedChange={(v) => setEditing({ ...editing, active: v })}/>
+                <span className="text-sm">Active</span>
+              </div>
+            </div>
           </div>
-          <div><label className="text-xs font-semibold mb-1 block">Title</label><Input value={editing.title||''} onChange={(e)=>setEditing({...editing,title:e.target.value})} className="rounded-xl border-purple-200"/></div>
-          <div><label className="text-xs font-semibold mb-1 block">Description</label><Textarea value={editing.description||''} onChange={(e)=>setEditing({...editing,description:e.target.value})} className="rounded-xl border-purple-200"/></div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs font-semibold mb-1 block">Points</label><Input type="number" value={editing.points||0} onChange={(e)=>setEditing({...editing,points:Number(e.target.value)})} className="rounded-xl border-purple-200"/></div>
-            <div className="flex items-center gap-2 pt-6"><Switch checked={!!editing.active} onCheckedChange={(v)=>setEditing({...editing,active:v})}/><span className="text-sm">Active</span></div>
-          </div>
-        </div>)}
+        )}
         <DialogFooter>
-          <Button variant="outline" onClick={()=>setEditing(null)} className="rounded-xl">Cancel</Button>
-          <Button onClick={()=>saveChallenge(editing)} disabled={busy} className="brand-gradient text-white rounded-xl">{busy?<Loader2 className="h-4 w-4 animate-spin"/>:'Save'}</Button>
+          <Button variant="outline" onClick={() => setEditing(null)} className="rounded-xl">Cancel</Button>
+          <Button onClick={() => saveChallenge(editing)} disabled={busy} className="brand-gradient text-white rounded-xl">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Save'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
 
     {/* Proof view */}
-    <Dialog open={!!proofView} onOpenChange={(v)=>!v&&setProofView(null)}>
+    <Dialog open={!!proofView} onOpenChange={(v) => !v && setProofView(null)}>
       <DialogContent className="sm:max-w-xl rounded-3xl">
-        <DialogHeader><DialogTitle className="font-display">{proofView?.challengeTitle}</DialogTitle>
-        <DialogDescription>Submitted by {proofView?.userName}</DialogDescription></DialogHeader>
-        {proofView?.proofDataUrl && <img src={proofView.proofDataUrl} className="w-full rounded-2xl"/>}
-        {proofView?.note && <div className="text-sm text-muted-foreground italic">"{proofView.note}"</div>}
+        <DialogHeader>
+          <DialogTitle className="font-display">{proofView?.challengeTitle}</DialogTitle>
+          <DialogDescription>Submitted by {proofView?.userName || 'User'}</DialogDescription>
+        </DialogHeader>
+        {proofView?.proofDataUrl && (
+          proofView.proofDataUrl.startsWith('data:video') ? (
+            <video src={proofView.proofDataUrl} controls className="w-full rounded-2xl max-h-96" />
+          ) : (
+            <img src={proofView.proofDataUrl} alt="Proof full view" className="w-full rounded-2xl max-h-96 object-contain bg-black/5" />
+          )
+        )}
+        {proofView?.note && <div className="text-sm text-muted-foreground italic mt-2">"{proofView.note}"</div>}
       </DialogContent>
     </Dialog>
 
     {/* Bonus dialog */}
-    <Dialog open={!!bonusUser} onOpenChange={(v)=>!v&&setBonusUser(null)}>
+    <Dialog open={!!bonusUser} onOpenChange={(v) => !v && setBonusUser(null)}>
       <DialogContent className="sm:max-w-md rounded-3xl">
         <DialogHeader><DialogTitle className="font-display">Award bonus to {bonusUser?.name}</DialogTitle></DialogHeader>
-        {bonusUser && <div className="space-y-3">
-          <div><label className="text-xs font-semibold mb-1 block">Points</label><Input type="number" value={bonusUser.pts} onChange={(e)=>setBonusUser({...bonusUser,pts:Number(e.target.value)})} className="rounded-xl border-purple-200"/></div>
-          <div><label className="text-xs font-semibold mb-1 block">Reason</label><Input value={bonusUser.reason} onChange={(e)=>setBonusUser({...bonusUser,reason:e.target.value})} className="rounded-xl border-purple-200"/></div>
-        </div>}
-        <DialogFooter><Button variant="outline" onClick={()=>setBonusUser(null)} className="rounded-xl">Cancel</Button>
-        <Button onClick={awardBonus} className="brand-gradient text-white rounded-xl">Award</Button></DialogFooter>
+        {bonusUser && (
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-semibold mb-1 block">Points</label>
+              <Input type="number" value={bonusUser.pts || 0} onChange={(e) => setBonusUser({ ...bonusUser, pts: Number(e.target.value) })} className="rounded-xl border-purple-200"/>
+            </div>
+            <div>
+              <label className="text-xs font-semibold mb-1 block">Reason</label>
+              <Input value={bonusUser.reason || ''} onChange={(e) => setBonusUser({ ...bonusUser, reason: e.target.value })} className="rounded-xl border-purple-200"/>
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setBonusUser(null)} className="rounded-xl">Cancel</Button>
+          <Button onClick={awardBonus} className="brand-gradient text-white rounded-xl">Award</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   </div>)
 }
 
 function AnnouncementsAdmin({ items, onAdd, onDelete }) {
-  const [title, setTitle] = useState(''); const [body, setBody] = useState(''); const [pinned, setPinned] = useState(false)
-  return (<div className="grid md:grid-cols-2 gap-4">
-    <Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-      <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">New Announcement</div>
-      <div className="space-y-3">
-        <Input placeholder="Title" value={title} onChange={(e)=>setTitle(e.target.value)} className="rounded-xl border-purple-200"/>
-        <Textarea placeholder="Message…" value={body} onChange={(e)=>setBody(e.target.value)} className="rounded-xl border-purple-200"/>
-        <label className="flex items-center gap-2 text-sm"><Switch checked={pinned} onCheckedChange={setPinned}/>Pin to top</label>
-        <Button onClick={()=>{if(title)onAdd(title,body,pinned);setTitle('');setBody('');setPinned(false)}} className="brand-gradient text-white rounded-xl"><Megaphone className="h-4 w-4 mr-1"/>Post</Button>
-      </div>
-    </CardContent></Card>
-    <Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-      <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Recent</div>
-      <div className="space-y-2">{items.map(a=>(<div key={a.id} className="rounded-xl border border-purple-100 p-3">
-        <div className="flex items-start justify-between gap-2"><div className="min-w-0"><div className="font-semibold text-sm text-brand-purple-dark">{a.title} {a.pinned && <Badge className="ml-1 bg-purple-100 text-brand-purple">pinned</Badge>}</div>
-        <div className="text-xs text-muted-foreground">{a.body}</div></div>
-        <button onClick={()=>onDelete(a.id)} className="text-red-500"><Trash2 className="h-4 w-4"/></button></div>
-      </div>))}</div>
-    </CardContent></Card>
-  </div>)
-}
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [pinned, setPinned] = useState(false);
 
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      <Card className="rounded-3xl border-purple-100 card-elevated">
+        <CardContent className="p-6">
+          <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">New Announcement</div>
+          <div className="space-y-3">
+            <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} className="rounded-xl border-purple-200"/>
+            <Textarea placeholder="Message…" value={body} onChange={(e) => setBody(e.target.value)} className="rounded-xl border-purple-200"/>
+            <label className="flex items-center gap-2 text-sm"><Switch checked={pinned} onCheckedChange={setPinned}/>Pin to top</label>
+            <Button onClick={() => { if (title) onAdd(title, body, pinned); setTitle(''); setBody(''); setPinned(false) }} className="brand-gradient text-white rounded-xl">
+              <Megaphone className="h-4 w-4 mr-1"/>Post
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="rounded-3xl border-purple-100 card-elevated">
+        <CardContent className="p-6">
+          <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Recent</div>
+          <div className="space-y-2">
+            {(items || []).map(a => (
+              <div key={a.id} className="rounded-xl border border-purple-100 p-3 bg-white">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-sm text-brand-purple-dark">{a.title} {a.pinned && <Badge className="ml-1 bg-purple-100 text-brand-purple">pinned</Badge>}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">{a.body}</div>
+                  </div>
+                  <button onClick={() => onDelete(a.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="h-4 w-4"/></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
 // ============= ONBOARDING / AUTH =============
 function Onboarding({ open, onClose, onDone }) {
   const [mode, setMode] = useState('signin')
@@ -611,7 +911,7 @@ function Onboarding({ open, onClose, onDone }) {
   const [loading, setLoading] = useState(false)
   const sb = createClient()
 
-const handleAuth = async (e) => {
+  const handleAuth = async (e) => {
     e?.preventDefault()
     if (!username || !password) {
       toast.error('Please enter both username and password')
@@ -673,6 +973,7 @@ const handleAuth = async (e) => {
       onClose?.()
     }
   }
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
       <DialogContent className="sm:max-w-md rounded-3xl">
@@ -761,24 +1062,47 @@ const handleAuth = async (e) => {
 
 // ============= CHALLENGE CARDS =============
 function ChallengeRow({ c, onComplete, onUpload, busy }) {
-  return (<motion.div layout initial={{opacity:0,y:6}} animate={{opacity:1,y:0}}
-    className={`flex items-center gap-4 rounded-2xl border p-4 ${c.completed?'border-emerald-200 bg-emerald-50/40':'border-purple-100 bg-white hover:border-purple-200'}`}>
-    <div className="text-2xl h-11 w-11 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center shrink-0">{c.icon}</div>
-    <div className="flex-1 min-w-0"><div className="font-semibold text-brand-purple-dark truncate">{c.title}</div>
-    <div className="text-xs text-muted-foreground truncate">{c.description}</div></div>
-    <div className="text-right shrink-0"><div className="text-sm font-bold text-brand-purple">+{c.points} pts</div>
-      {c.completed?<div className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold"><CheckCircle2 className="h-4 w-4"/>Done</div>
-      :c.type==='daily'?<Button size="sm" disabled={busy} onClick={()=>onComplete(c)} className="mt-1 h-7 brand-gradient text-white rounded-lg px-3">Complete</Button>
-      :<Button size="sm" disabled={busy} onClick={()=>onUpload(c)} className="mt-1 h-7 brand-gradient text-white rounded-lg px-3"><Upload className="h-3 w-3 mr-1"/>Submit Proof</Button>}
-    </div>
-  </motion.div>)
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex items-center gap-4 rounded-2xl border p-4 ${
+        c.completed ? 'border-emerald-200 bg-emerald-50/40' : 'border-purple-100 bg-white hover:border-purple-200'
+      }`}
+    >
+      <div className="text-2xl h-11 w-11 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center shrink-0">
+        {c.icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="font-semibold text-brand-purple-dark truncate">{c.title}</div>
+        <div className="text-xs text-muted-foreground truncate">{c.description}</div>
+      </div>
+      <div className="text-right shrink-0">
+        <div className="text-sm font-bold text-brand-purple">+{c.points} pts</div>
+        {c.completed ? (
+          <div className="mt-1 inline-flex items-center gap-1 text-xs text-emerald-700 font-semibold">
+            <CheckCircle2 className="h-4 w-4" />Done
+          </div>
+        ) : c.type === 'daily' ? (
+          <Button size="sm" disabled={busy} onClick={() => onComplete(c)} className="mt-1 h-7 brand-gradient text-white rounded-lg px-3">
+            Complete
+          </Button>
+        ) : (
+          <Button size="sm" disabled={busy} onClick={() => onUpload(c)} className="mt-1 h-7 brand-gradient text-white rounded-lg px-3">
+            <Upload className="h-3 w-3 mr-1" />Submit Proof
+          </Button>
+        )}
+      </div>
+    </motion.div>
+  )
 }
 
 // ============= APP =============
 function App() {
   const [me, setMe] = useState(null)
   const [onboard, setOnboard] = useState(false)
-  const [stats, setStats] = useState({totalPoints:0,totalKm:0,totalParticipants:0,totalDonations:0,fundGoal:250000,topParticipants:[]})
+  const [stats, setStats] = useState({ totalPoints: 0, totalKm: 0, totalParticipants: 0, totalDonations: 0, fundGoal: 250000, topParticipants: [] })
   const [daily, setDaily] = useState([])
   const [weekly, setWeekly] = useState([])
   const [special, setSpecial] = useState([])
@@ -820,13 +1144,14 @@ function App() {
           const email = (d?.user?.email || d?.participant?.email || d?.email || '').toLowerCase();
           const name = (d?.user?.user_metadata?.name || d?.participant?.name || d?.name || '').toLowerCase();
 
-          const isAdmin = 
+          const isAdminFlag = 
             email.includes('bebars') || email.includes('nelshaar') ||
             name.includes('bebars')  || name.includes('nelshaar');
 
-          if (isAdmin) {
+          if (isAdminFlag) {
             setRole('admin');
             setAdminRequested(true);
+            setIsAdmin(true);
           }
         }
       } catch (err) {
@@ -844,20 +1169,20 @@ function App() {
 
   useEffect(() => {
     if (me?.id) {
-      api(`challenges/daily?userId=${me.id}`).then(d=>setDaily(d.challenges||[]))
-      api(`participants/${me.id}`).then(d=>{if(d?.id){setMe(d);localStorage.setItem('roseup_user',JSON.stringify(d))}})
-      api(`submissions?userId=${me.id}`).then(d=>setMySubs(d.submissions||[]))
+      api(`challenges/daily?userId=${me.id}`).then(d => setDaily(d.challenges || []))
+      api(`participants/${me.id}`).then(d => { if (d?.id) { setMe(d); localStorage.setItem('roseup_user', JSON.stringify(d)) } })
+      api(`submissions?userId=${me.id}`).then(d => setMySubs(d.submissions || []))
     } else {
-      api('challenges/daily?userId=guest').then(d=>setDaily(d.challenges||[]))
+      api('challenges/daily?userId=guest').then(d => setDaily(d.challenges || []))
     }
-    api('challenges?type=weekly').then(d=>setWeekly(d.challenges||[]))
-    api('challenges?type=special').then(d=>setSpecial(d.challenges||[]))
+    api('challenges?type=weekly').then(d => setWeekly(d.challenges || []))
+    api('challenges?type=special').then(d => setSpecial(d.challenges || []))
   }, [me?.id])
 
   const refetchMe = async () => { 
-    if(me?.id){
+    if (me?.id) {
       const d = await api(`participants/${me.id}`); 
-      if(d?.id){
+      if (d?.id) {
         setMe(d);
         localStorage.setItem('roseup_user', JSON.stringify(d));
       }
@@ -871,6 +1196,8 @@ function App() {
     localStorage.removeItem('roseup_user'); 
     setMe(null); 
     setTab('dashboard'); 
+    setIsAdmin(false);
+    setRole('user');
     toast('Signed out');
   }
 
@@ -907,7 +1234,6 @@ function App() {
       setBusy(false) 
     }
   }
-
   const startProof = (c) => { if (!me?.id) { setOnboard(true); return } setProofChallenge(c) }
 
   const myRank = useMemo(() => {
@@ -1084,10 +1410,10 @@ function App() {
     { id: 'profile', label: 'Profile', icon: User },
   ]
 
-  // تصفية التحديات بأسماء جديدة لمنع أي تعارض
-  const filteredDaily = challenges.filter(c => (c.type === 'daily' || !c.type) && c.active !== false)
-  const filteredWeekly = challenges.filter(c => c.type === 'weekly' && c.active !== false)
-  const filteredSpecial = challenges.filter(c => c.type === 'special' && c.active !== false)
+  // تصفية التحديات بأمان تام لمنع أي خطأ إذا كانت البيانات فارغة أو قيد التحميل
+  const filteredDaily = (challenges || []).filter(c => (c.type === 'daily' || !c.type) && c.active !== false)
+  const filteredWeekly = (challenges || []).filter(c => c.type === 'weekly' && c.active !== false)
+  const filteredSpecial = (challenges || []).filter(c => c.type === 'special' && c.active !== false)
 
   return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
     {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
