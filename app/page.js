@@ -536,7 +536,7 @@ function Onboarding({ open, onClose, onDone }) {
   const [loading, setLoading] = useState(false)
   const sb = createClient()
 
-  const handleAuth = async (e) => {
+const handleAuth = async (e) => {
     e?.preventDefault()
     if (!username || !password) {
       toast.error('Please enter both username and password')
@@ -557,8 +557,19 @@ function Onboarding({ open, onClose, onDone }) {
         toast.error('Sign up failed: ' + error.message)
         return
       }
+      
+      const newUser = {
+        id: data.user?.id || Date.now().toString(),
+        name: username,
+        email: internalEmail,
+        points: 0,
+        km: 0,
+        completed: 0,
+        streak: 1
+      }
+      
       toast.success('Account created successfully!')
-      await onDone?.()
+      await onDone?.(newUser)
       onClose?.()
     } else {
       const { data, error } = await sb.auth.signInWithPassword({
@@ -570,12 +581,23 @@ function Onboarding({ open, onClose, onDone }) {
         toast.error('Invalid username or password')
         return
       }
+
+      // استخراج البيانات وتنسيق كائن المستخدم بالشكل الصحيح
+      const loggedInUser = {
+        id: data.user?.id,
+        name: data.user?.user_metadata?.name || username,
+        email: data.user?.email,
+        points: data.user?.user_metadata?.points || 0,
+        km: data.user?.user_metadata?.km || 0,
+        completed: data.user?.user_metadata?.completed || 0,
+        streak: data.user?.user_metadata?.streak || 1
+      }
+
       toast.success('Logged in successfully!')
-      await onDone?.()
+      await onDone?.(loggedInUser)
       onClose?.()
     }
   }
-      
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
       <DialogContent className="sm:max-w-md rounded-3xl">
@@ -983,18 +1005,18 @@ function App() {
         </CardContent></Card>)}
       </div>
     </main>
-   <Onboarding 
-      open={onboard} 
-      onClose={() => setOnboard(false)} 
-      onDone={async () => {
-        setOnboard(false);
-        setTab('dashboard');
-        try {
-          await hydrate();
-        } catch (err) {
-          console.error(err);
-        }
-      }}
-    />
-
+  <Onboarding 
+  open={onboard} 
+  onClose={() => setOnboard(false)} 
+  onDone={async (user) => {
+    if (user) setMe(user);
+    setOnboard(false);
+    setTab('dashboard');
+    try {
+      await hydrate();
+    } catch (err) {
+      console.error(err);
+    }
+  }}
+/>
 export default App
