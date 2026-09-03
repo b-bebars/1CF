@@ -1006,17 +1006,22 @@ function App() {
             <div className="rounded-2xl bg-blue-50 p-4"><div className="text-xs text-brand-blue font-semibold uppercase">Kilometers</div><div className="font-display text-2xl font-bold text-brand-purple-dark">{(me.km||0).toFixed?.(1)} km</div></div>
             <div className="rounded-2xl bg-purple-50 p-4"><div className="text-xs text-brand-purple font-semibold uppercase">Streak</div><div className="font-display text-2xl font-bold text-brand-purple-dark">{me.streak||1} days</div></div>
             <div className="rounded-2xl bg-blue-50 p-4"><div className="text-xs text-brand-blue font-semibold uppercase">Completed</div><div className="font-display text-2xl font-bold text-brand-purple-dark">{me.completed||0}</div></div>
-          </div>
-        </CardContent></Card>)}
-      </div>
-    </main>
-<Onboarding 
-  open={onboard} 
-  onClose={() => setOnboard(false)} 
- onDone={(user) => {
-  if (user) setMe(user);
-  setOnboard(false);
-  setTab('challenges');
-}}
-/>
-export default App
+     </div>
+          </CardContent></Card>)}
+        </div>
+      </main>
+
+      <Onboarding 
+        open={onboard} 
+        onClose={() => setOnboard(false)} 
+        onDone={(user) => {
+          if (user) setMe(user);
+          setOnboard(false);
+          setTab('challenges');
+        }}
+      />
+    </div>
+  );
+}
+
+export default App;
