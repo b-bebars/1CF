@@ -741,15 +741,11 @@ function App() {
         if (d?.user || d?.participant) {
           if (d.participant) setMe(d.participant);
 
-          // فحص شامل للبريد والاسم واسم المستخدم
+          // استخراج البريد والاسم
           const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
-          const name = (
-            d?.user?.user_metadata?.name || 
-            d?.participant?.name || 
-            d?.participant?.display_name || 
-            ''
-          ).toLowerCase();
+          const name = (d?.user?.user_metadata?.name || d?.participant?.name || '').toLowerCase();
 
+          // التحقق من الحساب
           const isAdmin = 
             email.includes('bebars') || email.includes('nelshaar') ||
             name.includes('bebars')  || name.includes('nelshaar');
