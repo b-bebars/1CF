@@ -1067,6 +1067,11 @@ function App() {
     { id: 'profile', label: 'Profile', icon: User },
   ]
 
+  // 👇 تصفية التحديات لتغذية شاشة المستخدم تلقائياً 👇
+  const daily = challenges.filter(c => (c.type === 'daily' || !c.type) && c.active !== false);
+  const weekly = challenges.filter(c => c.type === 'weekly' && c.active !== false);
+  const special = challenges.filter(c => c.type === 'special' && c.active !== false);
+
   return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
     {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
     <aside className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-gradient-to-b from-brand-purple-dark via-brand-purple to-[#4c1d95] text-white flex flex-col transition-transform lg:translate-x-0 ${sidebarOpen?'translate-x-0':'-translate-x-full lg:translate-x-0'}`}>
