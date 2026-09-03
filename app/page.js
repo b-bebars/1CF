@@ -1067,34 +1067,44 @@ function App() {
     { id: 'profile', label: 'Profile', icon: User },
   ]
 
-  // 👇 تصفية التحديات لتغذية شاشة المستخدم تلقائياً 👇
-  const daily = challenges.filter(c => (c.type === 'daily' || !c.type) && c.active !== false);
-  const weekly = challenges.filter(c => c.type === 'weekly' && c.active !== false);
-  const special = challenges.filter(c => c.type === 'special' && c.active !== false);
+  // تصفية التحديات بأسماء جديدة لمنع أي تعارض
+  const filteredDaily = challenges.filter(c => (c.type === 'daily' || !c.type) && c.active !== false)
+  const filteredWeekly = challenges.filter(c => c.type === 'weekly' && c.active !== false)
+  const filteredSpecial = challenges.filter(c => c.type === 'special' && c.active !== false)
 
   return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
     {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
-    <aside className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-72 bg-gradient-to-b from-brand-purple-dark via-brand-purple to-[#4c1d95] text-white flex flex-col transition-transform lg:translate-x-0 ${sidebarOpen?'translate-x-0':'-translate-x-full lg:translate-x-0'}`}>
-      <div className="p-5 flex items-center justify-between"><Wordmark small invert/><button className="lg:hidden text-white/80" onClick={()=>setSidebarOpen(false)}><X className="h-5 w-5"/></button></div>
-      <nav className="px-3 py-2 space-y-1 flex-1 overflow-y-auto">{items.map(({id,label,icon:Icon})=>{const a=tab===id;return(<button key={id} onClick={()=>{setTab(id);setSidebarOpen(false)}}
-        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm ${a?'bg-white text-brand-purple-dark font-semibold shadow-lg':'text-white/85 hover:bg-white/10'}`}>
-        <Icon className="h-4 w-4"/>{label}</button>)})}</nav>
-      <div className="p-3 border-t border-white/10"><button onClick={signOut} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><LogOut className="h-4 w-4"/>Log Out</button></div>
+    <aside className={`fixed lg:sticky top-0 z-50 h-screen w-72 flex-col bg-gradient-to-b from-brand-purple-dark via-brand-purple to-[#4c1d95] text-white transition-transform ${sidebarOpen?'flex translate-x-0':'hidden lg:flex'}`}>
+      <div className="p-5 flex items-center justify-between">
+        <Wordmark small invert/>
+        <button onClick={()=>setSidebarOpen(false)} className="lg:hidden text-white/80 hover:text-white"><X className="h-5 w-5"/></button>
+      </div>
+      <nav className="px-3 py-2 space-y-1 flex-1 overflow-y-auto">
+        {items.map(({id,label,icon:Icon})=>{const a=tab===id;return(<button key={id} onClick={()=>{setTab(id);setSidebarOpen(false)}}
+          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm ${a?'bg-white text-brand-purple-dark font-semibold shadow-lg':'text-white/85 hover:bg-white/10'}`}>
+          <Icon className="h-4 w-4"/>{label}
+        </button>)})}
+      </nav>
+      <div className="p-3 border-t border-white/10 space-y-1">
+        <button onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/')}} className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm text-white/85 hover:bg-white/10"><LogOut className="h-4 w-4"/>Log Out</button>
+      </div>
     </aside>
-    <main className="flex-1 min-w-0">
-      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-purple-100">
-        <div className="flex items-center justify-between px-4 md:px-8 h-16">
-          <div className="flex items-center gap-3">
-            <button onClick={()=>setSidebarOpen(true)} className="lg:hidden text-brand-purple-dark"><Menu className="h-5 w-5"/></button>
-            <div><div className="font-display text-lg font-bold text-brand-purple-dark">Welcome back,</div><div className="text-sm text-muted-foreground -mt-0.5">{me.name} 👋</div></div>
+
+    <main className="flex-1 min-w-0 flex flex-col">
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-purple-100/60 px-4 md:px-8 py-3.5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button onClick={()=>setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl border border-purple-100"><Menu className="h-5 w-5 text-brand-purple-dark"/></button>
+          <div><div className="font-display text-lg font-bold text-brand-purple-dark">Welcome back,</div><div className="text-xs text-muted-foreground flex items-center gap-1">{me.name} <Sparkles className="h-3 w-3 text-amber-500 fill-amber-500"/></div></div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-xs">
+            <div className="h-6 w-6 rounded-full brand-gradient flex items-center justify-center text-white text-[10px] font-bold">{me.avatar||'🌸'}</div>
+            <div><div className="font-semibold text-brand-purple-dark">{me.name}</div><div className="text-[10px] text-muted-foreground">{me.points||0} pts</div></div>
           </div>
-          <div className="flex items-center gap-2 rounded-full bg-white border border-purple-100 pl-1 pr-3 py-1 shadow-sm">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center text-lg">{me.avatar}</div>
-            <div className="leading-tight"><div className="text-sm font-semibold text-brand-purple-dark">{me.name.split(' ')[0]}</div><div className="text-[10px] text-muted-foreground">{me.points||0} pts</div></div>
-          </div>
-          <Button onClick={signOut} variant="outline" size="sm" className="rounded-full border-purple-200 h-9 gap-1.5"><LogOut className="h-3.5 w-3.5"/><span className="hidden sm:inline">Log Out</span></Button>
+          <Button variant="ghost" size="sm" onClick={async()=>{const sb=createClient();await sb.auth.signOut();localStorage.clear();window.location.replace('/')}} className="rounded-xl text-muted-foreground hover:text-brand-purple-dark text-xs"><LogOut className="h-4 w-4 mr-1"/>Log Out</Button>
         </div>
       </header>
+
       <div className="p-4 md:p-8 space-y-6">
         {announcements.filter(a=>a.pinned).slice(0,1).map(a=>(<div key={a.id} className="rounded-2xl bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 p-4 flex items-start gap-3">
           <Megaphone className="h-5 w-5 mt-0.5 text-brand-purple"/><div><div className="font-semibold text-brand-purple-dark">{a.title}</div><div className="text-sm text-brand-purple-dark/80">{a.body}</div></div></div>))}
@@ -1115,22 +1125,21 @@ function App() {
         {tab==='dashboard' && (<><RosePath points={me.points||0}/>
           <Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
             <div className="flex items-center justify-between mb-4"><div><h3 className="font-display text-xl font-bold text-brand-purple-dark">Today's Challenges</h3><p className="text-xs text-muted-foreground">Complete them to bloom your next rose</p></div>
-              <Badge className="bg-purple-100 text-brand-purple border-purple-200 hover:bg-purple-100">{daily.filter(c=>c.completed).length} / {daily.length} completed</Badge></div>
-            <div className="space-y-2.5">{daily.map(c=><ChallengeRow key={c.id} c={{...c,type:'daily'}} onComplete={completeDaily} onUpload={startProof} busy={busy}/>)}</div>
+              <Badge className="bg-purple-100 text-brand-purple border-purple-200 hover:bg-purple-100">{filteredDaily.filter(c=>c.completed).length} / {filteredDaily.length} completed</Badge></div>
+            <div className="space-y-2.5">{filteredDaily.map(c=><ChallengeRow key={c.id} c={{...c,type:'daily'}} onComplete={completeDaily} onUpload={startProof} busy={busy}/>)}</div>
           </CardContent></Card></>)}
 
         {tab==='daily' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
           <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">Daily Challenges</h3><p className="text-sm text-muted-foreground mb-5">Fresh every day.</p>
-          <div className="space-y-2.5">{daily.map(c=><ChallengeRow key={c.id} c={{...c,type:'daily'}} onComplete={completeDaily} onUpload={startProof} busy={busy}/>)}</div></CardContent></Card>)}
+          <div className="space-y-2.5">{filteredDaily.map(c=><ChallengeRow key={c.id} c={{...c,type:'daily'}} onComplete={completeDaily} onUpload={startProof} busy={busy}/>)}</div></CardContent></Card>)}
 
         {tab==='weekly' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
           <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">Weekly Challenges</h3><p className="text-sm text-muted-foreground mb-5">Bigger goals, bigger rewards. Submit proof to earn points.</p>
-          <div className="space-y-2.5">{weekly.filter(c=>c.active).map(c=><ChallengeRow key={c.id} c={{...c,completed:(me.completedChallengeIds||[]).includes(c.id)}} onUpload={startProof} onComplete={completeDaily} busy={busy}/>)}</div></CardContent></Card>)}
+          <div className="space-y-2.5">{filteredWeekly.map(c=><ChallengeRow key={c.id} c={{...c,completed:(me.completedChallengeIds||[]).includes(c.id)}} onUpload={startProof} onComplete={completeDaily} busy={busy}/>)}</div></CardContent></Card>)}
 
         {tab==='special' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
           <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">Special Challenges</h3><p className="text-sm text-muted-foreground mb-5">Limited-time events. Grab the bonus points!</p>
-          <div className="space-y-2.5">{special.filter(c=>c.active).map(c=><ChallengeRow key={c.id} c={{...c,completed:(me.completedChallengeIds||[]).includes(c.id)}} onUpload={startProof} onComplete={completeDaily} busy={busy}/>)}</div></CardContent></Card>)}
-
+          <div className="space-y-2.5">{filteredSpecial.map(c=><ChallengeRow key={c.id} c={{...c,completed:(me.completedChallengeIds||[]).includes(c.id)}} onUpload={startProof} onComplete={completeDaily} busy={busy}/>)}</div></CardContent></Card>)}
         {tab==='submissions' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
           <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">My Submissions</h3><p className="text-sm text-muted-foreground mb-5">Track your proof reviews.</p>
           {mySubs.length===0 && <div className="text-center text-sm text-muted-foreground py-8">No submissions yet. Upload proof from Weekly or Special challenges.</div>}
