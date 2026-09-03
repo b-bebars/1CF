@@ -717,30 +717,34 @@ function App() {
   const [adminRequested, setAdminRequested] = useState(false)
   const [role, setRole] = useState('user')
 
+  // 1. معالجة معلمات الرابط (URL Parameters)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      if (params.get('admin') === '1') setAdminRequested(true)
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === '1') setAdminRequested(true);
       if (params.get('signout') === '1') {
-        const sb = createClient()
-        sb.auth.signOut().finally(() => { localStorage.clear(); window.location.replace('/') })
-        return
+        const sb = createClient();
+        sb.auth.signOut().finally(() => {
+          localStorage.clear();
+          window.location.replace('/');
+        });
+        return;
       }
     }
-    const sb = createClient()
   }, []);
 
+  // 2. التحقق من المستخدم ومنح صلاحية الأدمن
   useEffect(() => {
     const hydrate = async () => {
       try {
         const d = await api('me');
         if (d?.user || d?.participant) {
           if (d.participant) setMe(d.participant);
-          
-          // التحقق من البريد الإلكتروني لمنح صلاحية الأدمن لـ bebars و nelshaar
+
+          // فحص البريد للتحقق من bebars أو nelshaar
           const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
           const isAdmin = email.includes('bebars') || email.includes('nelshaar');
-          
+
           setRole(isAdmin ? 'admin' : 'user');
           if (isAdmin) setTab('admin');
         }
@@ -751,11 +755,11 @@ function App() {
 
     hydrate();
   }, []);
-    const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) hydrate(); else { setMe(null); setRole('user') } })
-    api('stats').then(setStats)
-    api('announcements').then(d=>setAnnouncements(d.announcements||[]))
-    return () => sub?.subscription?.unsubscribe?.()
-  }, [])
+
+  // 3. جلب الإعلانات
+  useEffect(() => {
+    api('announcements').then((d) => setAnnouncements(d?.announcements || []));
+  }, []);
 
   useEffect(() => {
     if (me?.id) {
