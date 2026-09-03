@@ -19,7 +19,16 @@ import {
 } from 'lucide-react'
 
 const AVATARS = ['🌹','🌷','🌸','🌺','🌻','🌼','💜','✨','🌿','🌟']
-const api = (p, o) => fetch(`/api/${p}`, o).then(r => r.json())
+const api = async (p, o) => {
+  try {
+    const res = await fetch(`/api/${p}`, o)
+    if (!res.ok) return { error: true, status: res.status }
+    return await res.json()
+  } catch (err) {
+    console.warn(`API call failed for /api/${p}:`, err)
+    return { error: true }
+  }
+}
 
 // ============= BRAND =============
 function BrandMark({ size = 44 }) {
