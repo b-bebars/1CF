@@ -341,12 +341,29 @@ function AdminDashboard({ onExit, currentUser }) {
     { id: 'challenges', label: 'Challenges', icon: ListChecks },
     { id: 'submissions', label: 'Review Submissions', icon: Eye },
     { id: 'bonus', label: 'Award Bonus', icon: Sparkles },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+ { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'donations', label: 'Donations', icon: Heart },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'settings', label: 'Settings', icon: Shield },
   ]
+
+  // 1. شاشة التحميل لمنع انهيار الصفحة قبل وصول البيانات عند تسجيل الدخول
+  if (loading || !me) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-purple-50">
+        <div className="text-center space-y-3">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-purple mx-auto" />
+          <p className="text-sm text-muted-foreground font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. تصفية التحديات بحماية (challenges || []) لمنع خطأ client-side exception
+  const filteredDaily = (challenges || []).filter(c => (c.type === 'daily' || !c.type) && c.active !== false);
+  const filteredWeekly = (challenges || []).filter(c => c.type === 'weekly' && c.active !== false);
+  const filteredSpecial = (challenges || []).filter(c => c.type === 'special' && c.active !== false);
 
   return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
     <aside className="hidden lg:flex sticky top-0 h-screen w-72 flex-col bg-gradient-to-b from-brand-purple-dark via-brand-purple to-[#4c1d95] text-white">
