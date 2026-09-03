@@ -851,68 +851,78 @@ function App() {
     return idx >= 0 ? idx + 1 : null;
   }, [stats, me])
 
-  // ADMIN VIEW — حصرياً لحسابات bebars و nelshaar
-  const rawUser = me || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('roseup_user') || '{}') : {});
-  const userEmail = (rawUser?.email || rawUser?.user?.email || '').toLowerCase();
-  const userName = (rawUser?.name || rawUser?.participant?.name || rawUser?.display_name || rawUser?.username || '').toLowerCase();
+  // ADMIN VIEW — حماية لوحة التحكم بكلمة مرور لجميع المستخدمين
+  const ADMIN_PASSWORD = "12121234"; // <--- غير كلمة المرور التي تريدها هنا
 
-  const isUserAdmin = 
-    userEmail.includes('bebars') || userEmail.includes('nelshaar') || 
-    userName.includes('bebars')  || userName.includes('nelshaar');
+  // التحقق مما إذا كان قد تم إدخال كلمة المرور بنجاح في هذه الجلسة
+  const isPassUnlocked = typeof window !== 'undefined' && sessionStorage.getItem('admin_unlocked') === 'true';
 
   if (adminRequested || tab === 'admin') {
-    // 1. إذا لم يسجل الدخول بعد ولا توجد بيانات في الكاش
-    if (!me && !rawUser?.id) {
+    // 1. إذا لم يتم إدخال كلمة المرور الصحيحة بعد
+    if (!isPassUnlocked) {
       return (
         <div className="min-h-screen flex items-center justify-center p-6">
           <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
             <CardContent className="p-8 text-center">
               <div className="mx-auto mb-3"><BrandMark size={56}/></div>
-              <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Sign in Required</h2>
-              <p className="text-sm text-muted-foreground mt-2">Please sign in to access the admin dashboard.</p>
-              <Button onClick={() => setOnboard(true)} className="mt-5 brand-gradient text-white rounded-xl h-11 w-full">Sign In</Button>
+              <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Admin Password Required</h2>
+              <p className="text-sm text-muted-foreground mt-2">Please enter the admin password to continue.</p>
+              
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const inputPassword = e.target.password.value;
+                  if (inputPassword === ADMIN_PASSWORD) {
+                    sessionStorage.setItem('admin_unlocked', 'true');
+                    window.location.reload();
+                  } else {
+                    toast.error('Wrong Password!');
+                  }
+                }}
+                className="mt-5 space-y-3"
+              >
+                <input 
+                  name="password"
+                  type="password"
+                  placeholder="Enter Password"
+                  required
+                  className="w-full h-11 px-4 rounded-xl border border-purple-200 focus:outline-none focus:ring-2 focus:ring-brand-purple text-center"
+                />
+                <Button type="submit" className="w-full brand-gradient text-white rounded-xl h-11">
+                  Enter Dashboard
+                </Button>
+              </form>
+
+              <Button 
+                variant="ghost" 
+                onClick={() => { 
+                  if (typeof setAdminRequested === 'function') setAdminRequested(false); 
+                  setTab('challenges'); 
+                }} 
+                className="mt-3 rounded-xl h-11 w-full"
+              >
+                Back to App
+              </Button>
             </CardContent>
           </Card>
-          <Onboarding open={onboard} onClose={() => setOnboard(false)} onDone={(u) => { setMe(u); setOnboard(false); setTimeout(() => window.location.reload(), 300) }} />
         </div>
       );
     }
 
-    // 2. إذا كان الحساب هو bebars أو nelshaar
-    if (isUserAdmin) {
-      const safeAdminUser = { ...(me || rawUser), role: 'admin' };
-      return (
-        <AdminDashboard 
-          onExit={() => { 
-            if (typeof setAdminRequested === 'function') setAdminRequested(false);
-            setTab('challenges'); 
-          }} 
-          currentUser={safeAdminUser}
-        />
-      );
-    }
+    // 2. إذا تم إدخال كلمة المرور بنجاح، فتح اللوحة فوراً
+    const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
 
-    // 3. إذا كان الحساب غير مصرح له
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
-          <CardContent className="p-8 text-center">
-            <div className="mx-auto mb-3"><BrandMark size={56}/></div>
-            <h2 className="font-display text-2xl font-bold text-brand-purple-dark">Admin access required</h2>
-            <p className="text-sm text-muted-foreground mt-2">Only authorized admin accounts can view this page.</p>
-            <div className="mt-5 flex flex-col gap-2">
-              <Button onClick={async () => { const sb = createClient(); await sb.auth.signOut(); localStorage.clear(); window.location.replace('/?admin=1') }} variant="outline" className="rounded-xl h-11 border-purple-200">Switch account</Button>
-              <Button variant="ghost" onClick={() => { if (typeof setAdminRequested === 'function') setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
-            </div>
-            <div className="mt-4 text-xs text-muted-foreground">
-              Signed in as <b>{(me || rawUser).name || (me || rawUser).display_name}</b> (Not Authorized)
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminDashboard 
+        onExit={() => { 
+          sessionStorage.removeItem('admin_unlocked'); // إعادة إقفال اللوحة عند الخروج
+          if (typeof setAdminRequested === 'function') setAdminRequested(false);
+          setTab('challenges'); 
+        }} 
+        currentUser={safeAdminUser}
+      />
     );
   }
-
   // LANDING
   if (!me) {
     return (
