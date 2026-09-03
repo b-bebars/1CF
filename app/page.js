@@ -1005,18 +1005,16 @@ function App() {
         </CardContent></Card>)}
       </div>
     </main>
-  <Onboarding 
-  open={onboard} 
-  onClose={() => setOnboard(false)} 
-  onDone={async (user) => {
-    if (user) setMe(user);
-    setOnboard(false);
-    setTab('dashboard');
-    try {
-      await hydrate();
-    } catch (err) {
-      console.error(err);
-    }
-  }}
-/>
+<Onboarding 
+      open={onboard} 
+      onClose={() => setOnboard(false)} 
+      onDone={(user) => {
+        if (user) {
+          setMe(user);
+          localStorage.setItem('roseup_user', JSON.stringify(user));
+        }
+        setOnboard(false);
+        setTab('dashboard');
+      }}
+    />
 export default App
