@@ -741,12 +741,24 @@ function App() {
         if (d?.user || d?.participant) {
           if (d.participant) setMe(d.participant);
 
-          // فحص البريد للتحقق من bebars أو nelshaar
+          // فحص شامل للبريد والاسم واسم المستخدم
           const email = (d?.user?.email || d?.participant?.email || '').toLowerCase();
-          const isAdmin = email.includes('bebars') || email.includes('nelshaar');
+          const name = (
+            d?.user?.user_metadata?.name || 
+            d?.participant?.name || 
+            d?.participant?.display_name || 
+            ''
+          ).toLowerCase();
 
-          setRole(isAdmin ? 'admin' : 'user');
-          if (isAdmin) setTab('admin');
+          const isAdmin = 
+            email.includes('bebars') || email.includes('nelshaar') ||
+            name.includes('bebars')  || name.includes('nelshaar');
+
+          if (isAdmin) {
+            setRole('admin');
+          } else {
+            setRole('user');
+          }
         }
       } catch (err) {
         console.error("Hydrate error:", err);
