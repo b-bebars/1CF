@@ -983,17 +983,18 @@ function App() {
         </CardContent></Card>)}
       </div>
     </main>
-    <Onboarding 
-  open={onboard} 
-  onClose={() => setOnboard(false)} 
-  onDone={async () => {
-    await hydrate();
-    setOnboard(false);
-    setTab('dashboard');
-  }}
-/>
-    <ProofDialog open={!!proofChallenge} onClose={()=>setProofChallenge(null)} challenge={proofChallenge} me={me} onSubmitted={()=>{api(`submissions?userId=${me.id}`).then(d=>setMySubs(d.submissions||[]));refetchMe()}}/>
-  </div>)
-}
+   <Onboarding 
+      open={onboard} 
+      onClose={() => setOnboard(false)} 
+      onDone={async () => {
+        setOnboard(false);
+        setTab('dashboard');
+        try {
+          await hydrate();
+        } catch (err) {
+          console.error(err);
+        }
+      }}
+    />
 
 export default App
