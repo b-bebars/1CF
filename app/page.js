@@ -1009,9 +1009,9 @@ function App() {
   open={onboard} 
   onClose={() => setOnboard(false)} 
   onDone={async (user) => {
-    if (user) setMe(user); // حفظ بيانات المستخدم مباشرة
-    setOnboard(false);     // إغلاق نافذة التسجيل
-    setTab('challenges');  // ضَع اسم التبويب الصحيح الذي وجدته هنا
+    if (user) setMe(user);
+    setOnboard(false);
+    setTab('challenges');
     try {
       await hydrate();
     } catch (err) {
