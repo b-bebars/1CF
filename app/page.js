@@ -852,16 +852,17 @@ function App() {
   }, [stats, me])
 
   // ADMIN VIEW — حصرياً لحسابات bebars و nelshaar
-  const userEmail = (me?.email || me?.user?.email || '').toLowerCase();
-  const userName = (me?.name || me?.participant?.name || me?.display_name || '').toLowerCase();
+  const rawUser = me || (typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('roseup_user') || '{}') : {});
+  const userEmail = (rawUser?.email || rawUser?.user?.email || '').toLowerCase();
+  const userName = (rawUser?.name || rawUser?.participant?.name || rawUser?.display_name || rawUser?.username || '').toLowerCase();
 
   const isUserAdmin = 
     userEmail.includes('bebars') || userEmail.includes('nelshaar') || 
     userName.includes('bebars')  || userName.includes('nelshaar');
 
   if (adminRequested || tab === 'admin') {
-    // 1. إذا لم يسجل الدخول بعد
-    if (!me) {
+    // 1. إذا لم يسجل الدخول بعد ولا توجد بيانات في الكاش
+    if (!me && !rawUser?.id) {
       return (
         <div className="min-h-screen flex items-center justify-center p-6">
           <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
@@ -879,7 +880,7 @@ function App() {
 
     // 2. إذا كان الحساب هو bebars أو nelshaar
     if (isUserAdmin) {
-      const safeAdminUser = { ...me, role: 'admin' };
+      const safeAdminUser = { ...(me || rawUser), role: 'admin' };
       return (
         <AdminDashboard 
           onExit={() => { 
@@ -891,7 +892,7 @@ function App() {
       );
     }
 
-    // 3. إذا كان المقتحم حساباً آخر غير مسموح له
+    // 3. إذا كان الحساب غير مصرح له
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <Card className="max-w-md w-full rounded-3xl card-elevated border-purple-100">
@@ -904,7 +905,7 @@ function App() {
               <Button variant="ghost" onClick={() => { if (typeof setAdminRequested === 'function') setAdminRequested(false); setTab('challenges'); }} className="rounded-xl h-11">Back to app</Button>
             </div>
             <div className="mt-4 text-xs text-muted-foreground">
-              Signed in as <b>{me.name || me.display_name}</b> (Not Authorized)
+              Signed in as <b>{(me || rawUser).name || (me || rawUser).display_name}</b> (Not Authorized)
             </div>
           </CardContent>
         </Card>
