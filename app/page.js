@@ -260,6 +260,19 @@ function AdminDashboard({ onExit, currentUser }) {
 
   const load = async () => {
     try {
+      const sb = createClient();
+
+      // 1. جلب سجلات الإكمال لحساب كم شخص شارك في كل تحدي
+      const { data: completionsData } = await sb
+        .from('challenge_completions')
+        .select('challenge_id');
+
+      // تجميع أعداد المشاركين لكل challenge_id
+      const completionCounts = (completionsData || []).reduce((acc, curr) => {
+        acc[curr.challenge_id] = (acc[curr.challenge_id] || 0) + 1;
+        return acc;
+      }, {});
+
       const [aData, pData, cData, sData, anData] = await Promise.allSettled([
         api('admin/analytics'),
         api('admin/participants'),
@@ -281,7 +294,16 @@ function AdminDashboard({ onExit, currentUser }) {
       }
 
       if (pData.status === 'fulfilled' && pData.value?.participants) setParticipants(pData.value.participants)
-      if (cData.status === 'fulfilled' && cData.value?.challenges) setChallenges(cData.value.challenges)
+
+      // 2. دمج عدد المشاركين مع بيانات التحديات المجلوبة
+      if (cData.status === 'fulfilled' && cData.value?.challenges) {
+        const enrichedChallenges = cData.value.challenges.map(c => ({
+          ...c,
+          participantsCount: completionCounts[c.id] || 0
+        }))
+        setChallenges(enrichedChallenges)
+      }
+
       if (sData.status === 'fulfilled' && sData.value?.submissions) setSubmissions(sData.value.submissions)
       if (anData.status === 'fulfilled' && anData.value?.announcements) setAnnouncements(anData.value.announcements)
     } catch (err) {
