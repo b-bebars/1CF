@@ -720,14 +720,16 @@ function App() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      if (params.get('admin')==='1') setAdminRequested(true)
-      if (params.get('signout')==='1') {
+      if (params.get('admin') === '1') setAdminRequested(true)
+      if (params.get('signout') === '1') {
         const sb = createClient()
-        sb.auth.signOut().finally(()=>{ localStorage.clear(); window.location.replace('/') })
+        sb.auth.signOut().finally(() => { localStorage.clear(); window.location.replace('/') })
         return
       }
     }
     const sb = createClient()
+  }, []);
+
   useEffect(() => {
     const hydrate = async () => {
       try {
