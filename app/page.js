@@ -1006,15 +1006,17 @@ function App() {
       </div>
     </main>
 <Onboarding 
-      open={onboard} 
-      onClose={() => setOnboard(false)} 
-      onDone={(user) => {
-        if (user) {
-          setMe(user);
-          localStorage.setItem('roseup_user', JSON.stringify(user));
-        }
-        setOnboard(false);
-        setTab('dashboard');
-      }}
-    />
+  open={onboard} 
+  onClose={() => setOnboard(false)} 
+  onDone={async (user) => {
+    if (user) setMe(user); // حفظ بيانات المستخدم مباشرة
+    setOnboard(false);     // إغلاق نافذة التسجيل
+    setTab('challenges');  // ضَع اسم التبويب الصحيح الذي وجدته هنا
+    try {
+      await hydrate();
+    } catch (err) {
+      console.error(err);
+    }
+  }}
+/>
 export default App
