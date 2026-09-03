@@ -418,7 +418,7 @@ function AdminDashboard({ onExit, currentUser }) {
       {tab === 'challenges' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="font-display text-lg font-bold text-brand-purple-dark">Challenges ({challenges.length})</div>
-          <Button onClick={()=>setEditing({_new:true,type:'weekly',title:'',description:'',icon:'⭐',points:100,active:true})} className="brand-gradient text-white rounded-xl"><Plus className="h-4 w-4 mr-1"/>New Challenge</Button>
+          <Button onClick={()=>setEditing({_new:true,type:'daily',title:'',description:'',icon:'⭐',points:100,active:true})} className="brand-gradient text-white rounded-xl"><Plus className="h-4 w-4 mr-1"/>New Challenge</Button>
         </div>
         <div className="grid md:grid-cols-2 gap-3">{challenges.map(c=>(<div key={c.id} className="rounded-2xl border border-purple-100 p-4 flex items-start gap-3">
           <div className="text-2xl h-11 w-11 rounded-xl bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">{c.icon}</div>
@@ -428,7 +428,11 @@ function AdminDashboard({ onExit, currentUser }) {
               {!c.active && <Badge variant="outline" className="text-xs">inactive</Badge>}
             </div>
             <div className="text-xs text-muted-foreground truncate">{c.description}</div>
-            <div className="text-xs mt-1 text-brand-purple font-semibold">+{c.points} pts</div>
+            <div className="flex items-center gap-2 mt-1 text-xs">
+              <span className="text-brand-purple font-semibold">+{c.points} pts</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground font-medium">👥 {c.participantsCount || 0} participants</span>
+            </div>
           </div>
           <div className="flex gap-1"><button onClick={()=>setEditing({...c})} className="p-1.5 rounded-lg hover:bg-purple-50 text-brand-purple"><Edit3 className="h-4 w-4"/></button>
           <button onClick={()=>deleteChallenge(c.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 className="h-4 w-4"/></button></div>
@@ -516,7 +520,7 @@ function AdminDashboard({ onExit, currentUser }) {
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-xs font-semibold mb-1 block">Type</label>
               <select value={editing.type} onChange={(e)=>setEditing({...editing,type:e.target.value})} className="w-full h-10 rounded-xl border border-purple-200 px-3 text-sm">
-                <option value="weekly">Weekly</option><option value="special">Special</option>
+                <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="special">Special</option>
               </select></div>
             <div><label className="text-xs font-semibold mb-1 block">Icon</label><Input value={editing.icon||''} onChange={(e)=>setEditing({...editing,icon:e.target.value})} className="rounded-xl border-purple-200"/></div>
           </div>
