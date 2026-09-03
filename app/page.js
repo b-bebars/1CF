@@ -558,7 +558,7 @@ function Onboarding({ open, onClose, onDone }) {
         return
       }
       toast.success('Account created successfully!')
-      onDone?.()
+      await onDone?.()
       onClose?.()
     } else {
       const { data, error } = await sb.auth.signInWithPassword({
@@ -571,11 +571,11 @@ function Onboarding({ open, onClose, onDone }) {
         return
       }
       toast.success('Logged in successfully!')
-      onDone?.()
+      await onDone?.()
       onClose?.()
     }
   }
-
+      
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose?.()}>
       <DialogContent className="sm:max-w-md rounded-3xl">
@@ -983,7 +983,15 @@ function App() {
         </CardContent></Card>)}
       </div>
     </main>
-    <Onboarding open={onboard} onClose={()=>setOnboard(false)} onDone={(u)=>{setMe(u);setOnboard(false);setTab('dashboard')}}/>
+    <Onboarding 
+  open={onboard} 
+  onClose={() => setOnboard(false)} 
+  onDone={async () => {
+    await hydrate();
+    setOnboard(false);
+    setTab('dashboard');
+  }}
+/>
     <ProofDialog open={!!proofChallenge} onClose={()=>setProofChallenge(null)} challenge={proofChallenge} me={me} onSubmitted={()=>{api(`submissions?userId=${me.id}`).then(d=>setMySubs(d.submissions||[]));refetchMe()}}/>
   </div>)
 }
