@@ -728,10 +728,15 @@ function App() {
       }
     }
     const sb = createClient()
-    const hydrate = () => api('me').then(d=>{
-      if(d?.participant) setMe(d.participant); else setMe(null)
-      setRole(d?.user?.role || 'user')
-    })
+   const hydrate = () => api('me').then(d => {
+  if (d?.participant) {
+    setMe(d.participant);
+  } else if (!d?.user) {
+    // يمسح المستخدم فقط إذا لم يكن هناك جلسة أو مستخدم مطلقاً
+    setMe(null);
+  }
+  setRole(d?.user?.role || 'user');
+}).catch(() => {});
     hydrate()
     const { data: sub } = sb.auth.onAuthStateChange((_e, session)=>{ if(session) hydrate(); else { setMe(null); setRole('user') } })
     api('stats').then(setStats)
