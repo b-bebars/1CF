@@ -25,10 +25,22 @@ async function handler(request, ctx) {
   const p = await ctx?.params
   const path = (p?.path || []).join('/')
   const url = new URL(request.url)
-  const sb = admin()
-
   try {
     if (method === 'GET' && !path) return NextResponse.json({ ok: true, service: 'RoseUp Quest 2026 · Supabase' })
+
+    if (method === 'GET' && path === 'debug/env') {
+      return NextResponse.json({
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasAnon: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        hasService: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        urlPrefix: (process.env.NEXT_PUBLIC_SUPABASE_URL || '').slice(0, 30),
+        anonLen: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').length,
+        serviceLen: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').length,
+        node: process.version,
+      })
+    }
+
+    const sb = admin()
 
     // ---------- Session/me ----------
     if (method === 'GET' && path === 'me') {
