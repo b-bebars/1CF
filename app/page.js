@@ -141,7 +141,9 @@ function RosePath({ points = 0 }) {
 // ============= UPLOAD PROOF DIALOG =============
 function ProofDialog({ open, onClose, challenge, me, onSubmitted }) {
   const [note, setNote] = useState('')
-  const [dataUrl, setDataUrl] = useState(null)
+  const [file, setFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [progress, setProgress] = useState(0)
   const [loading, setLoading] = useState(false)
   const fileRef = useRef(null)
 
@@ -150,40 +152,62 @@ function ProofDialog({ open, onClose, challenge, me, onSubmitted }) {
     const isVideo = f.type.startsWith('video/')
     const isImage = f.type.startsWith('image/')
     if (!isVideo && !isImage) { toast.error('Please pick an image or video'); return }
-    const limit = isVideo ? 15 * 1024 * 1024 : 3 * 1024 * 1024
-    if (f.size > limit) { toast.error(`${isVideo ? 'Video' : 'Image'} exceeds ${isVideo ? '15 MB' : '3 MB'} limit`); return }
+    const limit = isVideo ? 30 * 1024 * 1024 : 5 * 1024 * 1024
+    if (f.size > limit) { toast.error(`${isVideo ? 'Video' : 'Image'} exceeds ${isVideo ? '30 MB' : '5 MB'} limit`); return }
+    setFile(f)
     const reader = new FileReader()
-    reader.onload = () => setDataUrl(reader.result)
+    reader.onload = () => setPreview(reader.result)
     reader.readAsDataURL(f)
   }
 
   const submit = async () => {
-    if (!dataUrl) return toast.error('Please upload a proof image')
+    if (!file) return toast.error('Please pick a photo or video')
     if (!me?.id) return toast.error('User session not found. Please log in again.')
-    setLoading(true)
+    setLoading(true); setProgress(5)
     try {
+      const sb = createClient()
+      // 1) Ask backend for a signed upload URL
+      const signed = await api('uploads/signed-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: challenge?.id, fileName: file.name })
+      })
+      if (!signed?.path || !signed?.token) throw new Error('Could not get signed URL')
+      setProgress(20)
+
+      // 2) Upload directly to Supabase Storage (bypasses Vercel 4.5MB limit)
+      const { error: upErr } = await sb.storage
+        .from('proof-images')
+        .uploadToSignedUrl(signed.path, signed.token, file, {
+          contentType: file.type, upsert: true,
+        })
+      if (upErr) throw upErr
+      setProgress(80)
+
+      // 3) Register submission in DB (no base64)
       await api('submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: me.id,
           userName: me.name || 'Anonymous',
           userAvatar: me.avatar || '🌹',
           challengeId: challenge?.id,
           challengeTitle: challenge?.title || 'Challenge',
-          challengeType: challenge?.type || 'weekly',
+          challengeType: 'daily',
           points: challenge?.points || 0,
           km: challenge?.km || 0,
-          proofDataUrl: dataUrl,
+          proofPath: signed.path,
           note,
         })
       })
+      setProgress(100)
       toast.success('Proof submitted!', { description: 'An admin will review it soon.' })
       onSubmitted?.()
       onClose?.()
-      setDataUrl(null); setNote('')
-    } catch { 
-      toast.error('Submission failed') 
+      setFile(null); setPreview(null); setNote(''); setProgress(0)
+    } catch (err) {
+      console.error('Upload error:', err)
+      toast.error(err?.message || 'Submission failed')
     } finally { 
       setLoading(false) 
     }
@@ -201,19 +225,25 @@ function ProofDialog({ open, onClose, challenge, me, onSubmitted }) {
         <div className="space-y-3">
           <div>
             <input type="file" accept="image/*,video/*" ref={fileRef} onChange={pickFile} className="hidden"/>
-            {dataUrl ? (
+            {preview ? (
               <div className="relative rounded-2xl overflow-hidden border border-purple-200">
-                {dataUrl.startsWith('data:video')
-                  ? <video src={dataUrl} controls className="w-full max-h-64"/>
-                  : <img src={dataUrl} alt="proof" className="w-full max-h-64 object-cover"/>}
-                <button onClick={() => setDataUrl(null)} className="absolute top-2 right-2 h-8 w-8 bg-black/60 text-white rounded-full flex items-center justify-center"><X className="h-4 w-4"/></button>
+                {preview.startsWith('data:video')
+                  ? <video src={preview} controls className="w-full max-h-64"/>
+                  : <img src={preview} alt="proof" className="w-full max-h-64 object-cover"/>}
+                <button onClick={() => { setFile(null); setPreview(null) }} className="absolute top-2 right-2 h-8 w-8 bg-black/60 text-white rounded-full flex items-center justify-center"><X className="h-4 w-4"/></button>
               </div>
             ) : (
               <button onClick={() => fileRef.current?.click()} className="w-full rounded-2xl border-2 border-dashed border-purple-200 py-10 hover:bg-purple-50 flex flex-col items-center gap-2 text-brand-purple">
-                <Upload className="h-6 w-6"/><div className="font-semibold">Upload photo or video</div><div className="text-xs text-muted-foreground">Image up to 3 MB · Video up to 15 MB</div>
+                <Upload className="h-6 w-6"/><div className="font-semibold">Upload photo or video</div><div className="text-xs text-muted-foreground">Image up to 5 MB · Video up to 30 MB</div>
               </button>
             )}
           </div>
+          {loading && progress > 0 && (
+            <div className="space-y-1">
+              <Progress value={progress} className="h-2"/>
+              <div className="text-xs text-muted-foreground text-center">Uploading… {progress}%</div>
+            </div>
+          )}
           <Textarea placeholder="Add a note (optional)…" value={note} onChange={(e) => setNote(e.target.value)} className="rounded-xl border-purple-200"/>
         </div>
         <DialogFooter>
@@ -474,10 +504,8 @@ function AdminDashboard({ onExit, currentUser }) {
     { id: 'settings', label: 'Settings', icon: Shield },
   ]
 
-  // تصفية التحديات بحماية آمنة
-  const filteredDaily = (challenges || []).filter(c => (c.type === 'daily' || !c.type) && c.active !== false);
-  const filteredWeekly = (challenges || []).filter(c => c.type === 'weekly' && c.active !== false);
-  const filteredSpecial = (challenges || []).filter(c => c.type === 'special' && c.active !== false);
+  // Daily-only filter
+  const filteredDaily = (challenges || []).filter(c => c.type === 'daily' || !c.type);
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
@@ -771,10 +799,8 @@ function AdminDashboard({ onExit, currentUser }) {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold mb-1 block">Type</label>
-                <select value={editing.type || 'daily'} onChange={(e) => setEditing({ ...editing, type: e.target.value })} className="w-full h-10 rounded-xl border border-purple-200 px-3 text-sm">
+                <select value="daily" disabled className="w-full h-10 rounded-xl border border-purple-200 px-3 text-sm bg-gray-50">
                   <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="special">Special</option>
                 </select>
               </div>
               <div>
@@ -924,22 +950,20 @@ function Onboarding({ open, onClose, onDone }) {
         toast.error('Sign up failed: ' + error.message)
         return
       }
-      
-      const newUser = {
-        id: data.user?.id || Date.now().toString(),
+
+      // Fetch actual participant row (created by DB trigger)
+      const meData = await api('me')
+      const p = meData?.participant || {
+        id: data.user?.id,
         name: username,
-        email: internalEmail,
-        points: 0,
-        km: 0,
-        completed: 0,
-        streak: 1
+        points: 0, km: 0, completed: 0, streak: 1,
       }
-      
+
       toast.success('Account created successfully!')
-      await onDone?.(newUser)
+      await onDone?.(p)
       onClose?.()
     } else {
-      const { data, error } = await sb.auth.signInWithPassword({
+      const { error } = await sb.auth.signInWithPassword({
         email: internalEmail,
         password: password,
       })
@@ -949,18 +973,12 @@ function Onboarding({ open, onClose, onDone }) {
         return
       }
 
-      const loggedInUser = {
-        id: data.user?.id,
-        name: data.user?.user_metadata?.name || username,
-        email: data.user?.email,
-        points: data.user?.user_metadata?.points || 0,
-        km: data.user?.user_metadata?.km || 0,
-        completed: data.user?.user_metadata?.completed || 0,
-        streak: data.user?.user_metadata?.streak || 1
-      }
+      // Fetch real participant with points from DB
+      const meData = await api('me')
+      const p = meData?.participant || { id: meData?.user?.id, name: username, points: 0, km: 0, completed: 0, streak: 1 }
 
       toast.success('Logged in successfully!')
-      await onDone?.(loggedInUser)
+      await onDone?.(p)
       onClose?.()
     }
   }
@@ -1095,8 +1113,6 @@ function App() {
   const [onboard, setOnboard] = useState(false)
   const [stats, setStats] = useState({ totalPoints: 0, totalKm: 0, totalParticipants: 0, totalDonations: 0, fundGoal: 250000, topParticipants: [] })
   const [daily, setDaily] = useState([])
-  const [weekly, setWeekly] = useState([])
-  const [special, setSpecial] = useState([])
   const [mySubs, setMySubs] = useState([])
   const [announcements, setAnnouncements] = useState([])
   const [tab, setTab] = useState('dashboard')
@@ -1169,8 +1185,6 @@ function App() {
     } else {
       api('challenges/daily?userId=guest').then(d => setDaily(d.challenges || []))
     }
-    api('challenges?type=weekly').then(d => setWeekly(d.challenges || []))
-    api('challenges?type=special').then(d => setSpecial(d.challenges || []))
   }, [me?.id])
 
   const refetchMe = async () => { 
@@ -1180,6 +1194,9 @@ function App() {
         setMe(d);
         localStorage.setItem('roseup_user', JSON.stringify(d));
       }
+      // Refresh daily challenges to update completion states
+      api(`challenges/daily?userId=${me.id}`).then(d => setDaily(d.challenges || []))
+      api(`submissions?userId=${me.id}`).then(d => setMySubs(d.submissions || []))
     } 
     api('stats').then(d => { if(d && !d.error) setStats(d) });
   }
@@ -1199,16 +1216,11 @@ function App() {
     if (!me?.id) { setOnboard(true); return }
     setBusy(true)
     try {
-      const sb = createClient();
       const km = c.category === 'move' && /walk/i.test(c.title) ? 3 : (c.category === 'move' ? 0.5 : 0)
-
-      await sb.from('challenge_completions').insert({
-        user_id: me.id,
-        challenge_id: c.id
-      });
 
       const data = await api('challenges/complete', { 
         method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: me.id, challengeId: c.id, points: c.points, km }) 
       })
 
@@ -1357,16 +1369,15 @@ function App() {
         </section>
         <section id="leaderboard" className="mt-10 grid lg:grid-cols-2 gap-5"><LeaderboardList me={me} compact/>
           <Card className="rounded-3xl brand-gradient text-white"><CardContent className="p-6 relative">
-            <div className="text-xs font-semibold uppercase tracking-wider text-white/90 flex items-center gap-1"><Trophy className="h-4 w-4"/>Weekly Challenge</div>
-            <h3 className="font-display text-3xl font-bold mt-3">Walk 20 km</h3><p className="text-sm text-white/85 mt-1">Complete 20 kilometers this week.</p>
-            <div className="mt-6 h-2 rounded-full bg-white/25 overflow-hidden"><div className="h-full bg-white" style={{width:'62%'}}/></div>
-            <div className="mt-3 text-xs text-white/80">+150 pts · Ends in 4d 12h</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-white/90 flex items-center gap-1"><Sparkles className="h-4 w-4"/>Today's Quest</div>
+            <h3 className="font-display text-3xl font-bold mt-3">5 new challenges daily</h3><p className="text-sm text-white/85 mt-1">Fresh challenges rotate every day at midnight. Log in to see today's set and earn points!</p>
+            <div className="mt-6 flex items-center gap-2 text-xs text-white/85"><Clock className="h-3.5 w-3.5"/>Resets 00:00 UTC</div>
           </CardContent></Card>
         </section>
         <section id="how" className="mt-12"><div className="text-center mb-6"><h2 className="font-display text-3xl md:text-4xl font-bold text-brand-purple-dark">How It Works</h2><p className="text-muted-foreground">Five simple steps to make a real impact.</p></div>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">{[
             {n:1,icon:<User className="h-5 w-5"/>,title:'Join',text:'Create your account.'},
-            {n:2,icon:<ListChecks className="h-5 w-5"/>,title:'Do Challenges',text:'Daily and weekly quests.'},
+            {n:2,icon:<ListChecks className="h-5 w-5"/>,title:'Do Challenges',text:'Fresh daily quests.'},
             {n:3,icon:<Star className="h-5 w-5"/>,title:'Earn Points',text:'Watch your progress grow.'},
             {n:4,icon:<Trophy className="h-5 w-5"/>,title:'Climb Higher',text:'Rise on the leaderboard.'},
             {n:5,icon:<Heart className="h-5 w-5"/>,title:'Make Impact',text:'Support the cause.'},
@@ -1379,7 +1390,7 @@ function App() {
         </section>
         <footer className="mt-16 py-8 text-center text-sm text-muted-foreground">Made with 💜 for RoseUp Quest 2026 · Every step gives hope. · <a href="?admin=1" className="underline hover:text-brand-purple">Admin</a></footer>
       </main>
-      <Onboarding open={onboard} onClose={()=>setOnboard(false)} onDone={(u)=>{setMe(u);setOnboard(false);setTab('dashboard')}}/>
+    <Onboarding open={onboard} onClose={()=>setOnboard(false)} onDone={(u)=>{setMe(u);setOnboard(false);setTab('dashboard');api('stats').then(d=>{if(d && !d.error) setStats(d)})}}/>
     </div>)
   }
 
@@ -1387,8 +1398,6 @@ function App() {
   const items = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'daily', label: 'Daily Challenges', icon: ListChecks },
-    { id: 'weekly', label: 'Weekly Challenges', icon: CalendarRange },
-    { id: 'special', label: 'Special Challenges', icon: Star },
     { id: 'submissions', label: 'My Submissions', icon: Upload },
     { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
     { id: 'donations', label: 'Donations', icon: Heart },
@@ -1397,8 +1406,6 @@ function App() {
   ]
 
   const filteredDaily = (daily || []).filter(c => c.active !== false)
-  const filteredWeekly = (weekly || []).filter(c => c.active !== false)
-  const filteredSpecial = (special || []).filter(c => c.active !== false)
 
   return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
     {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
@@ -1443,7 +1450,7 @@ function App() {
           <Card className="rounded-2xl border-purple-100 card-elevated bg-white"><CardContent className="p-4"><div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Your Rank</div>
             <div className="font-display text-3xl font-bold mt-1 text-brand-purple-dark">#{rank}</div><div className="text-[10px] text-muted-foreground">out of {stats.totalParticipants}</div></CardContent></Card>
           <Card className="rounded-2xl border-purple-100 card-elevated bg-white"><CardContent className="p-4"><div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Challenges</div>
-            <div className="font-display text-3xl font-bold mt-1 text-brand-purple-dark">{me.completed||0}<span className="text-lg text-muted-foreground"> / 35</span></div><div className="text-[10px] text-muted-foreground">Completed</div></CardContent></Card>
+            <div className="font-display text-3xl font-bold mt-1 text-brand-purple-dark">{me.completed||0}</div><div className="text-[10px] text-muted-foreground">Completed</div></CardContent></Card>
           <Card className="rounded-2xl border-purple-100 card-elevated bg-white"><CardContent className="p-4"><div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Distance</div>
             <div className="font-display text-3xl font-bold mt-1 text-brand-purple-dark">{(me.km||0).toFixed?.(1)??me.km}<span className="text-lg text-muted-foreground"> km</span></div><div className="text-[10px] text-muted-foreground">Walked</div></CardContent></Card>
           <Card className="rounded-2xl border-purple-100 card-elevated bg-white"><CardContent className="p-4"><div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Streak</div>
@@ -1458,16 +1465,15 @@ function App() {
           </CardContent></Card></>)}
 
         {tab==='daily' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-          <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">Daily Challenges</h3><p className="text-sm text-muted-foreground mb-5">Fresh every day.</p>
+          <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+            <h3 className="font-display text-2xl font-bold text-brand-purple-dark">Daily Challenges</h3>
+            <Badge className="bg-purple-100 text-brand-purple border-purple-200 hover:bg-purple-100">
+              {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} · {filteredDaily.filter(c=>!c.completed).length} left
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground mb-5">Fresh every day at 00:00 UTC. Complete them for points!</p>
           <div className="space-y-2.5">{filteredDaily.map(c=><ChallengeRow key={c.id} c={{...c,type:'daily'}} onComplete={completeDaily} onUpload={startProof} busy={busy}/>)}</div></CardContent></Card>)}
 
-        {tab==='weekly' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-          <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">Weekly Challenges</h3><p className="text-sm text-muted-foreground mb-5">Bigger goals, bigger rewards. Submit proof to earn points.</p>
-          <div className="space-y-2.5">{filteredWeekly.map(c=><ChallengeRow key={c.id} c={{...c,completed:(me.completedChallengeIds||[]).includes(c.id)}} onUpload={startProof} onComplete={completeDaily} busy={busy}/>)}</div></CardContent></Card>)}
-
-        {tab==='special' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
-          <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">Special Challenges</h3><p className="text-sm text-muted-foreground mb-5">Limited-time events. Grab the bonus points!</p>
-          <div className="space-y-2.5">{filteredSpecial.map(c=><ChallengeRow key={c.id} c={{...c,completed:(me.completedChallengeIds||[]).includes(c.id)}} onUpload={startProof} onComplete={completeDaily} busy={busy}/>)}</div></CardContent></Card>)}
         {tab==='submissions' && (<Card className="rounded-3xl border-purple-100 card-elevated"><CardContent className="p-6">
           <h3 className="font-display text-2xl font-bold text-brand-purple-dark mb-1">My Submissions</h3><p className="text-sm text-muted-foreground mb-5">Track your proof reviews.</p>
           {mySubs.length===0 && <div className="text-center text-sm text-muted-foreground py-8">No submissions yet. Upload proof from Weekly or Special challenges.</div>}
