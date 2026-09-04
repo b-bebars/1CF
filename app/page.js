@@ -291,16 +291,6 @@ function LeaderboardList({ me, compact = false }) {
     </Card>
   )
 }
-        <div className="text-sm font-bold text-brand-purple">{(r.points || 0).toLocaleString()} pts</div>
-                </motion.div>
-              )
-            })}
-          </AnimatePresence>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 // ============= CERTIFICATE =============
 function Certificate({ me }) {
@@ -484,7 +474,7 @@ function AdminDashboard({ onExit, currentUser }) {
     { id: 'settings', label: 'Settings', icon: Shield },
   ]
 
-  // تصفية التحديات بحماية آمنة بدون استدعاء متغيرات غير معرفة
+  // تصفية التحديات بحماية آمنة
   const filteredDaily = (challenges || []).filter(c => (c.type === 'daily' || !c.type) && c.active !== false);
   const filteredWeekly = (challenges || []).filter(c => c.type === 'weekly' && c.active !== false);
   const filteredSpecial = (challenges || []).filter(c => c.type === 'special' && c.active !== false);
@@ -532,37 +522,39 @@ function AdminDashboard({ onExit, currentUser }) {
         </div>
 
         {tab === 'overview' && analytics && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'Participants', value: analytics.totalParticipants, icon: <Users className="h-4 w-4"/> },
-            {label: 'Total Points', value: analytics.totalPoints?.toLocaleString() || '0', icon: <Sparkles className="h-4 w-4"/>},
-            {label: 'Total km', value: `${analytics.totalKm || 0}`, icon: <MapPin className="h-4 w-4"/>},
-            {label: 'Pending Reviews', value: analytics.submissions?.pending || 0, icon: <Clock className="h-4 w-4"/>},
-          ].map((s, i) => (
-            <Card key={i} className="rounded-2xl border-purple-100 card-elevated">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-brand-purple text-xs uppercase font-semibold">{s.icon}{s.label}</div>
-                <div className="font-display text-2xl font-bold mt-1 text-brand-purple-dark">{s.value}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="rounded-3xl border-purple-100 card-elevated">
-          <CardContent className="p-6">
-            <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Submissions this week</div>
-            <div className="flex items-end gap-2 h-40">
-              {(analytics.activity || []).map((d, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full brand-gradient rounded-t-lg" style={{ height: `${Math.max(4, (d.submissions || 0) * 24)}px` }}/>
-                  <div className="text-[10px] text-muted-foreground">{d.day}</div>
-                  <div className="text-xs font-semibold text-brand-purple">{d.submissions || 0}</div>
-                </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: 'Participants', value: analytics.totalParticipants, icon: <Users className="h-4 w-4"/> },
+                {label: 'Total Points', value: analytics.totalPoints?.toLocaleString() || '0', icon: <Sparkles className="h-4 w-4"/>},
+                {label: 'Total km', value: `${analytics.totalKm || 0}`, icon: <MapPin className="h-4 w-4"/>},
+                {label: 'Pending Reviews', value: analytics.submissions?.pending || 0, icon: <Clock className="h-4 w-4"/>},
+              ].map((s, i) => (
+                <Card key={i} className="rounded-2xl border-purple-100 card-elevated">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-brand-purple text-xs uppercase font-semibold">{s.icon}{s.label}</div>
+                    <div className="font-display text-2xl font-bold mt-1 text-brand-purple-dark">{s.value}</div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      </>)}
+
+            <Card className="rounded-3xl border-purple-100 card-elevated">
+              <CardContent className="p-6">
+                <div className="font-display text-lg font-bold text-brand-purple-dark mb-3">Submissions this week</div>
+                <div className="flex items-end gap-2 h-40">
+                  {(analytics.activity || []).map((d, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full brand-gradient rounded-t-lg" style={{ height: `${Math.max(4, (d.submissions || 0) * 24)}px` }}/>
+                      <div className="text-[10px] text-muted-foreground">{d.day}</div>
+                      <div className="text-xs font-semibold text-brand-purple">{d.submissions || 0}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
       {tab === 'participants' && (
         <Card className="rounded-3xl border-purple-100 card-elevated">
@@ -957,7 +949,6 @@ function Onboarding({ open, onClose, onDone }) {
         return
       }
 
-      // استخراج البيانات وتنسيق كائن المستخدم بالشكل الصحيح
       const loggedInUser = {
         id: data.user?.id,
         name: data.user?.user_metadata?.name || username,
@@ -1116,7 +1107,6 @@ function App() {
   const [adminRequested, setAdminRequested] = useState(false)
   const [role, setRole] = useState('user')
 
-  // 1. معالجة معلمات الرابط (URL Parameters)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -1132,7 +1122,13 @@ function App() {
     }
   }, []);
 
-  // 2. التحقق من المستخدم ومنح صلاحية الأدمن
+  // إضافة جلب الإحصائيات (Stats) عند فتح التطبيق لكي تكون الأرقام حقيقية بالصفحة الرئيسية
+  useEffect(() => {
+    api('stats').then(d => {
+      if(d && !d.error) setStats(d);
+    });
+  }, []);
+
   useEffect(() => {
     const hydrate = async () => {
       try {
@@ -1140,7 +1136,6 @@ function App() {
         if (d?.user || d?.participant) {
           if (d.participant) setMe(d.participant);
 
-          // فحص شامل لجميع صيغ البريد والاسم
           const email = (d?.user?.email || d?.participant?.email || d?.email || '').toLowerCase();
           const name = (d?.user?.user_metadata?.name || d?.participant?.name || d?.name || '').toLowerCase();
 
@@ -1162,7 +1157,6 @@ function App() {
     hydrate();
   }, []);
 
-  // 3. جلب الإعلانات
   useEffect(() => {
     api('announcements').then((d) => setAnnouncements(d?.announcements || []));
   }, []);
@@ -1187,7 +1181,7 @@ function App() {
         localStorage.setItem('roseup_user', JSON.stringify(d));
       }
     } 
-    api('stats').then(setStats);
+    api('stats').then(d => { if(d && !d.error) setStats(d) });
   }
 
   const signOut = async () => { 
@@ -1208,13 +1202,11 @@ function App() {
       const sb = createClient();
       const km = c.category === 'move' && /walk/i.test(c.title) ? 3 : (c.category === 'move' ? 0.5 : 0)
 
-      // 1. تسجيل الإكمال في جدول challenge_completions
       await sb.from('challenge_completions').insert({
         user_id: me.id,
         challenge_id: c.id
       });
 
-      // 2. إرسال الطلب لـ API لتحديث نقاط المستخدم
       const data = await api('challenges/complete', { 
         method: 'POST', 
         body: JSON.stringify({ userId: me.id, challengeId: c.id, points: c.points, km }) 
@@ -1227,7 +1219,7 @@ function App() {
 
       setDaily(prev => prev.map(x => x.id === c.id ? { ...x, completed: true } : x))
       toast.success(`+${c.points} points! 🌹`, { description: c.title }); 
-      api('stats').then(setStats)
+      api('stats').then(d => { if(d && !d.error) setStats(d) });
     } catch { 
       toast.error('Failed') 
     } finally { 
@@ -1242,14 +1234,10 @@ function App() {
     return idx >= 0 ? idx + 1 : null;
   }, [stats, me])
 
-  // ADMIN VIEW — حماية لوحة التحكم بكلمة مرور لجميع المستخدمين
-  const ADMIN_PASSWORD = "12121234"; // <--- غير كلمة المرور التي تريدها هنا
-
-  // التحقق مما إذا كان قد تم إدخال كلمة المرور بنجاح في هذه الجلسة
+  const ADMIN_PASSWORD = "12121234";
   const isPassUnlocked = typeof window !== 'undefined' && sessionStorage.getItem('admin_unlocked') === 'true';
 
   if (adminRequested || tab === 'admin') {
-    // 1. إذا لم يتم إدخال كلمة المرور الصحيحة بعد
     if (!isPassUnlocked) {
       return (
         <div className="min-h-screen flex items-center justify-center p-6">
@@ -1288,7 +1276,7 @@ function App() {
                 variant="ghost" 
                 onClick={() => { 
                   if (typeof setAdminRequested === 'function') setAdminRequested(false); 
-                  setTab('challenges'); 
+                  setTab('dashboard'); 
                 }} 
                 className="mt-3 rounded-xl h-11 w-full"
               >
@@ -1300,21 +1288,20 @@ function App() {
       );
     }
 
-    // 2. إذا تم إدخال كلمة المرور بنجاح، فتح اللوحة فوراً
     const safeAdminUser = me ? { ...me, role: 'admin' } : { name: 'Admin', role: 'admin' };
 
     return (
       <AdminDashboard 
         onExit={() => { 
-          sessionStorage.removeItem('admin_unlocked'); // إعادة إقفال اللوحة عند الخروج
+          sessionStorage.removeItem('admin_unlocked');
           if (typeof setAdminRequested === 'function') setAdminRequested(false);
-          setTab('challenges'); 
+          setTab('dashboard'); 
         }} 
         currentUser={safeAdminUser}
       />
     );
   }
-  // LANDING
+
   if (!me) {
     return (
       <div className="min-h-screen">
@@ -1396,7 +1383,6 @@ function App() {
     </div>)
   }
 
-  // DASHBOARD
   const rank = myRank || '—'
   const items = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -1410,10 +1396,9 @@ function App() {
     { id: 'profile', label: 'Profile', icon: User },
   ]
 
-  // تصفية التحديات بأمان تام لمنع أي خطأ إذا كانت البيانات فارغة أو قيد التحميل
-  const filteredDaily = (challenges || []).filter(c => (c.type === 'daily' || !c.type) && c.active !== false)
-  const filteredWeekly = (challenges || []).filter(c => c.type === 'weekly' && c.active !== false)
-  const filteredSpecial = (challenges || []).filter(c => c.type === 'special' && c.active !== false)
+  const filteredDaily = (daily || []).filter(c => c.active !== false)
+  const filteredWeekly = (weekly || []).filter(c => c.active !== false)
+  const filteredSpecial = (special || []).filter(c => c.active !== false)
 
   return (<div className="min-h-screen flex bg-gradient-to-br from-purple-50/40 via-white to-blue-50/40">
     {sidebarOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={()=>setSidebarOpen(false)}/>}
@@ -1548,11 +1533,20 @@ function App() {
         onDone={(user) => {
           if (user) setMe(user);
           setOnboard(false);
-          setTab('challenges');
+          setTab('dashboard');
         }}
-      />
-    </div>
-  );
+    />
+    <ProofDialog 
+        open={!!proofChallenge} 
+        onClose={() => setProofChallenge(null)} 
+        challenge={proofChallenge} 
+        me={me} 
+        onSubmitted={() => {
+          setProofChallenge(null);
+          refetchMe();
+        }} 
+    />
+  </div>);
 }
 
 export default App;
