@@ -51,9 +51,27 @@ create table if not exists public.challenge_completions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   challenge_id text not null,
-  created_at timestamptz not null default now(),
-  unique(user_id, challenge_id)
+  completed_at timestamptz not null default now()
 );
+
+-- Ensure required columns exist (in case table pre-existed with different shape)
+alter table public.challenge_completions add column if not exists completed_at timestamptz not null default now();
+alter table public.challenge_completions add column if not exists challenge_id text;
+alter table public.challenge_completions add column if not exists user_id uuid;
+
+-- Ensure unique constraint (per user per challenge per day)
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'challenge_completions_user_challenge_uniq'
+  ) then
+    begin
+      alter table public.challenge_completions
+        add constraint challenge_completions_user_challenge_uniq unique(user_id, challenge_id);
+    exception when others then null;
+    end;
+  end if;
+end $$;
 
 alter table public.challenge_completions enable row level security;
 
@@ -214,7 +232,7 @@ begin
      set completed_challenge_ids = '{}'::text[];
 
   -- Optional: clear completions log older than 30 days (keeps table small)
-  delete from public.challenge_completions where created_at < now() - interval '30 days';
+  delete from public.challenge_completions where completed_at < now() - interval '30 days';
 end;
 $$;
 
