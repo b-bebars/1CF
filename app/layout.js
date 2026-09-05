@@ -1,5 +1,6 @@
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { LangProvider } from '@/lib/i18n'
 
 export const metadata = {
   title: 'RoseUp Quest 2026 — Every Step Gives Hope',
@@ -8,10 +9,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
-        <Toaster position="top-center" richColors />
+        <LangProvider>
+          {children}
+          <Toaster position="top-center" richColors />
+        </LangProvider>
       </body>
     </html>
   )
